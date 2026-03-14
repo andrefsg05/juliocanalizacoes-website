@@ -1,0 +1,53 @@
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+})
+
+function getMetadataBase(): URL {
+  const fallbackUrl = 'https://www.juliocanalizacoes.pt'
+
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SITE_URL || fallbackUrl)
+  } catch {
+    return new URL(fallbackUrl)
+  }
+}
+
+export const metadata: Metadata = {
+  metadataBase: getMetadataBase(),
+  title: 'Júlio Gonçalves Canalizações — Serviços de Canalização Profissional',
+  description: 'Serviços profissionais de canalização, reparação de fugas, instalação sanitária e manutenção de redes de água e esgotos. Qualidade e confiança desde sempre.',
+  keywords: ['canalização', 'canalizador', 'reparação fugas', 'instalação sanitária', 'Júlio Gonçalves'],
+  authors: [{ name: 'Júlio Gonçalves Canalizações' }],
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Júlio Gonçalves Canalizações',
+    description: 'Serviços profissionais de canalização, remodelação e manutenção.',
+    type: 'website',
+    locale: 'pt_PT',
+    url: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="pt" className={inter.variable}>
+      <body className={`${inter.className} antialiased`}>{children}</body>
+    </html>
+  )
+}

@@ -1,0 +1,229 @@
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-white text-gray-900;
+  }
+
+  ::selection {
+    @apply bg-brand-200 text-brand-900;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-lg;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-500 to-brand-700;
+  }
+
+  .section-padding {
+    @apply py-20 md:py-28 lg:py-32;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-brand-600 text-white px-7 py-3.5 rounded-xl font-semibold 
+           hover:bg-brand-700 active:bg-brand-800 transition-all duration-300 shadow-lg shadow-brand-500/25
+           hover:shadow-xl hover:shadow-brand-500/30 hover:-translate-y-0.5;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 bg-white text-brand-700 px-7 py-3.5 rounded-xl font-semibold 
+           border-2 border-brand-200 hover:border-brand-400 hover:bg-brand-50 transition-all duration-300
+           hover:-translate-y-0.5;
+  }
+
+  .service-card {
+    @apply relative bg-white rounded-2xl p-8 shadow-sm border border-gray-100 
+           hover:shadow-xl hover:shadow-brand-500/10 hover:border-brand-200 
+           transition-all duration-500 overflow-hidden;
+  }
+
+  .service-card::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-brand-50 to-transparent opacity-0 
+           group-hover:opacity-100 transition-opacity duration-500 rounded-2xl;
+  }
+
+  .stat-card {
+    @apply text-center p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-brand-100;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-delay-100 { animation-delay: 100ms; }
+  .animate-delay-200 { animation-delay: 200ms; }
+  .animate-delay-300 { animation-delay: 300ms; }
+  .animate-delay-400 { animation-delay: 400ms; }
+  .animate-delay-500 { animation-delay: 500ms; }
+  .animate-delay-600 { animation-delay: 600ms; }
+}
+
+/* Gallery masonry */
+.gallery-masonry {
+  columns: 2;
+  column-gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .gallery-masonry {
+    columns: 3;
+    column-gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .gallery-masonry {
+    columns: 4;
+    column-gap: 1.5rem;
+  }
+}
+
+.gallery-masonry > * {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .gallery-masonry > * {
+    margin-bottom: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .gallery-masonry > * {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Lightbox overlay */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.lightbox-overlay img {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 1rem;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* Hero slideshow — Ken Burns crossfade */
+.hero-slideshow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, transform;
+}
+
+.hero-slide.active {
+  opacity: 1;
+}
+
+.hero-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: kenBurns 14s ease-in-out infinite alternate;
+}
+
+.hero-slide:nth-child(1) img { animation-delay: 0s; transform-origin: center center; }
+.hero-slide:nth-child(2) img { animation-delay: -4.5s; transform-origin: top right; }
+.hero-slide:nth-child(3) img { animation-delay: -9s; transform-origin: bottom left; }
+
+@keyframes kenBurns {
+  0%   { transform: scale(1.04); }
+  100% { transform: scale(1.14); }
+}
+
+/* Overlay system on top of slideshow */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg,
+      rgba(255,255,255,0.72) 0%,
+      rgba(255,255,255,0.58) 30%,
+      rgba(255,255,255,0.50) 55%,
+      rgba(255,255,255,0.65) 100%
+    );
+}
+
+/* Respect reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-slide img {
+    animation: none !important;
+  }
+  .hero-slide {
+    transition-duration: 0.3s !important;
+  }
+}
+
+/* Water drop decoration */
+.water-drop {
+  position: relative;
+}
+
+.water-drop::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  background: linear-gradient(180deg, #60A5FA, #3B82F6);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  opacity: 0.3;
+  animation: drip 3s ease-in-out infinite;
+}
+
+@keyframes drip {
+  0%, 100% { transform: translateY(0); opacity: 0.3; }
+  50% { transform: translateY(8px); opacity: 0.6; }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-brand-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-brand-400;
+}
