@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import LoadingScreen from '@/components/LoadingScreen'
+import BrandLogo from '@/components/BrandLogo'
 
 /* ───────── Icon Components ───────── */
 
@@ -258,10 +260,14 @@ const stats = [
   { value: '100%', label: 'Trabalhos Garantidos' },
 ]
 
+const navItems = ['Serviços', 'Trabalhos', 'Sobre', 'Testemunhos', 'Contacto']
+
 /* ───────── Page Component ───────── */
 
 export default function Home() {
+  const headerRef = useRef<HTMLElement | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [hasScrolled, setHasScrolled] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [quoteForm, setQuoteForm] = useState({
     name: '',
@@ -276,6 +282,8 @@ export default function Home() {
     message: string
     previewUrl?: string
   }>({ type: 'idle', message: '' })
+  const fullHeaderActive = !hasScrolled
+  const compactHeaderActive = hasScrolled
 
   const openLightbox = useCallback((index: number) => {
     setLightboxIndex(index)
@@ -303,6 +311,31 @@ export default function Home() {
     }, 5000)
     return () => clearInterval(timer)
   }, [])
+
+  useEffect(() => {
+    const updateHeaderState = () => {
+      setHasScrolled(window.scrollY > 50)
+      setMobileMenuOpen(false)
+    }
+
+    updateHeaderState()
+    window.addEventListener('scroll', updateHeaderState, { passive: true })
+
+    return () => window.removeEventListener('scroll', updateHeaderState)
+  }, [])
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!headerRef.current?.contains(event.target as Node)) {
+        setMobileMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [mobileMenuOpen])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -366,53 +399,122 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white overflow-x-hidden">
+      <LoadingScreen />
 
       {/* ── Navbar ── */}
-      <header className="fixed top-0 inset-x-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/80">
-        <nav className="container mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-20">
-            {/* Logo */}
-            <a href="#" className="flex items-center gap-2.5 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/25 group-hover:shadow-brand-500/40 transition-shadow">
-                <DropletIcon className="w-5 h-5 text-white" />
-              </div>
-              <div className="hidden sm:block">
-                <span className="block text-lg font-bold text-gray-900 leading-tight">Júlio Gonçalves</span>
-                <span className="block text-[11px] font-medium text-brand-600 tracking-wider uppercase -mt-0.5">Canalizações</span>
-              </div>
+      <header
+        ref={headerRef}
+        className={`absolute inset-x-0 top-0 z-50 border-b transition-all duration-300 ease-out md:fixed ${
+          mobileMenuOpen
+            ? 'border-gray-200 bg-white/95 shadow-lg shadow-gray-900/5 backdrop-blur-md'
+            : 'border-transparent bg-transparent shadow-none'
+        }`}
+      >
+        <nav className="container mx-auto px-6 transition-colors duration-300 lg:px-8">
+          <div className="flex h-16 items-center justify-between transition-colors duration-300 md:hidden lg:h-20">
+            <a
+              href="#"
+              className="group flex min-w-0 items-center transition-transform duration-300 hover:scale-[1.01]"
+            >
+              <BrandLogo className="gap-2.5" />
             </a>
-
-            {/* Desktop Nav */}
-            <div className="hidden md:flex items-center gap-8">
-              {['Serviços', 'Trabalhos', 'Sobre', 'Testemunhos', 'Contacto'].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}
-                  className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-500 after:transition-all after:duration-300 hover:after:w-full"
-                >
-                  {item}
-                </a>
-              ))}
-              <a href="tel:+351964030969" className="btn-primary text-sm !px-5 !py-2.5">
-                <PhoneIcon className="w-4 h-4" />
-                Ligar Agora
-              </a>
-            </div>
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+              className={`rounded-lg p-2 text-gray-600 transition-all duration-300 ${
+                mobileMenuOpen ? 'bg-gray-100 text-gray-900' : 'hover:bg-gray-100'
+              }`}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <XIcon /> : <MenuIcon />}
             </button>
           </div>
 
+          <div
+            className={`header-desktop-wrapper hidden md:flex ${
+              hasScrolled ? 'header-desktop-wrapper-scrolled' : ''
+            }`}
+          >
+            <div
+              className={`header-desktop-stage ${
+                hasScrolled ? 'header-desktop-stage-scrolled' : ''
+              }`}
+            >
+              <div
+                aria-hidden={!fullHeaderActive}
+                className={`header-desktop-view header-desktop-view-full ${
+                  fullHeaderActive ? 'header-desktop-view-visible' : 'header-desktop-view-hidden'
+                }`}
+              >
+                <a
+                  href="#"
+                  tabIndex={fullHeaderActive ? undefined : -1}
+                  className="group flex min-w-0 items-center transition-transform duration-300 hover:scale-[1.01]"
+                >
+                  <BrandLogo className="gap-2.5" />
+                </a>
+
+                <div className="flex items-center gap-8">
+                  {navItems.map((item) => (
+                    <a
+                      key={item}
+                      href={`#${item.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}
+                      tabIndex={fullHeaderActive ? undefined : -1}
+                      className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-500 after:transition-all after:duration-300 hover:after:w-full"
+                    >
+                      {item}
+                    </a>
+                  ))}
+                  <a
+                    href="tel:+351964030969"
+                    tabIndex={fullHeaderActive ? undefined : -1}
+                    className="btn-primary text-sm !px-5 !py-2.5"
+                  >
+                    <PhoneIcon className="w-4 h-4" />
+                    Ligar Agora
+                  </a>
+                </div>
+              </div>
+
+              <div
+                aria-hidden={!compactHeaderActive}
+                className={`header-desktop-view header-desktop-view-compact ${
+                  compactHeaderActive ? 'header-desktop-view-visible' : 'header-desktop-view-hidden'
+                }`}
+              >
+                <div className="flex items-center rounded-full border border-white/30 bg-gray-600/97 px-2.5 py-1.5 backdrop-blur-xl shadow-lg shadow-gray-900/10">
+                  <a
+                    href="#"
+                    tabIndex={compactHeaderActive ? undefined : -1}
+                    className="group flex min-w-0 items-center transition-transform duration-300 hover:scale-[1.02]"
+                  >
+                    <BrandLogo variant="short" />
+                  </a>
+
+                  <a
+                    href="tel:+351964030969"
+                    aria-label="Ligar agora"
+                    tabIndex={compactHeaderActive ? undefined : -1}
+                    className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/85 transition-colors hover:bg-white/15 active:bg-white/20"
+                  >
+                    <PhoneIcon className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Mobile Nav */}
-          {mobileMenuOpen && (
-            <div className="md:hidden pb-6 pt-2 border-t border-gray-100 animate-fade-in">
+          <div
+            aria-hidden={!mobileMenuOpen}
+            className={`overflow-hidden border-t bg-white transition-all duration-300 ease-out md:hidden ${
+              mobileMenuOpen
+                ? 'max-h-96 border-gray-100 pb-6 pt-2 opacity-100'
+                : 'max-h-0 border-transparent pb-0 pt-0 opacity-0 pointer-events-none'
+            }`}
+          >
               <div className="flex flex-col gap-1">
-                {['Serviços', 'Trabalhos', 'Sobre', 'Testemunhos', 'Contacto'].map((item) => (
+                {navItems.map((item) => (
                   <a
                     key={item}
                     href={`#${item.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}
@@ -428,7 +530,6 @@ export default function Home() {
                 </a>
               </div>
             </div>
-          )}
         </nav>
       </header>
 
@@ -476,22 +577,8 @@ export default function Home() {
           <div className="absolute -bottom-20 -left-32 w-[400px] h-[400px] rounded-full bg-brand-50/40 blur-3xl" />
         </div>
 
-        {/* Floating water drops decoration */}
-        <div className="absolute top-32 right-[15%] w-3 h-3 rounded-full bg-brand-300/30 animate-float z-[3]" />
-        <div className="absolute top-48 right-[25%] w-2 h-2 rounded-full bg-brand-400/20 animate-float animate-delay-200 z-[3]" />
-        <div className="absolute bottom-32 left-[20%] w-4 h-4 rounded-full bg-brand-200/30 animate-float animate-delay-400 z-[3]" />
-
         <div className="container mx-auto px-6 lg:px-8 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-50/90 backdrop-blur-sm border border-brand-100 mb-8 animate-fade-in">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500" />
-              </span>
-              <span className="text-sm font-medium text-brand-700">Orçamentos grátis e sem compromisso</span>
-            </div>
-
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-6 animate-fade-in-up text-balance">
               Canalizações com{' '}
               <span className="gradient-text">qualidade</span>{' '}
