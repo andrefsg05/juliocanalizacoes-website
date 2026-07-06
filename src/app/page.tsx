@@ -2,8 +2,10 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import LoadingScreen from '@/components/LoadingScreen'
+import LoadingScreen, { LOADING_DURATION_MS } from '@/components/LoadingScreen'
 import BrandLogo from '@/components/BrandLogo'
+import SmoothScroll from '@/components/SmoothScroll'
+import TapIcon from '@/components/TapIcon'
 
 /* ───────── Icon Components ───────── */
 
@@ -266,6 +268,7 @@ const navItems = ['Serviços', 'Trabalhos', 'Sobre', 'Testemunhos', 'Contacto']
 
 export default function Home() {
   const headerRef = useRef<HTMLElement | null>(null)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -305,6 +308,14 @@ export default function Home() {
 
   // Hero slideshow timer
   const [heroSlide, setHeroSlide] = useState(0)
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setIsInitialLoading(false)
+    }, LOADING_DURATION_MS)
+
+    return () => window.clearTimeout(timeout)
+  }, [])
+
   useEffect(() => {
     const timer = setInterval(() => {
       setHeroSlide((prev) => (prev + 1) % highlightedPhotos.length)
@@ -397,14 +408,16 @@ export default function Home() {
     }
   }
 
-  return (
-    <main className="min-h-screen bg-white overflow-x-hidden">
-      <LoadingScreen />
+  if (isInitialLoading) {
+    return <LoadingScreen />
+  }
 
+  return (
+    <>
       {/* ── Navbar ── */}
       <header
         ref={headerRef}
-        className={`absolute inset-x-0 top-0 z-50 border-b transition-all duration-300 ease-out md:fixed ${
+        className={`header-enter absolute inset-x-0 top-0 z-50 border-b transition-all duration-300 ease-out md:fixed ${
           mobileMenuOpen
             ? 'border-gray-200 bg-white/95 shadow-lg shadow-gray-900/5 backdrop-blur-md'
             : 'border-transparent bg-transparent shadow-none'
@@ -414,7 +427,7 @@ export default function Home() {
           <div className="flex h-16 items-center justify-between transition-colors duration-300 md:hidden lg:h-20">
             <a
               href="#"
-              className="group flex min-w-0 items-center transition-transform duration-300 hover:scale-[1.01]"
+              className="flex min-w-0 items-center"
             >
               <BrandLogo className="gap-2.5" />
             </a>
@@ -449,7 +462,7 @@ export default function Home() {
                 <a
                   href="#"
                   tabIndex={fullHeaderActive ? undefined : -1}
-                  className="group flex min-w-0 items-center transition-transform duration-300 hover:scale-[1.01]"
+                  className="flex min-w-0 items-center"
                 >
                   <BrandLogo className="gap-2.5" />
                 </a>
@@ -486,7 +499,7 @@ export default function Home() {
                   <a
                     href="#"
                     tabIndex={compactHeaderActive ? undefined : -1}
-                    className="group flex min-w-0 items-center transition-transform duration-300 hover:scale-[1.02]"
+                    className="flex min-w-0 items-center"
                   >
                     <BrandLogo variant="short" />
                   </a>
@@ -533,8 +546,9 @@ export default function Home() {
         </nav>
       </header>
 
+      <SmoothScroll>
       {/* ── Hero Section ── */}
-      <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 lg:pt-48 lg:pb-40 overflow-hidden">
+      <section className="hero-intro relative pt-32 pb-20 md:pt-40 md:pb-32 lg:pt-48 lg:pb-40 overflow-hidden">
         {/* Background photo slideshow */}
         <div className="hero-slideshow" aria-hidden="true">
           {highlightedPhotos.map((photo, i) => (
@@ -860,7 +874,7 @@ export default function Home() {
                 <div className="relative space-y-8">
                   <div className="text-center">
                     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-brand-500/30">
-                      <DropletIcon className="w-10 h-10 text-white" />
+                      <TapIcon className="w-10 h-10 text-white" />
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-1">Júlio Gonçalves</h3>
                     <p className="text-brand-600 font-medium">Canalizador Profissional</p>
@@ -1183,15 +1197,7 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-10 mb-12">
             {/* Brand */}
             <div>
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
-                  <DropletIcon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <span className="block text-lg font-bold leading-tight">Júlio Gonçalves</span>
-                  <span className="block text-[11px] font-medium text-brand-400 tracking-wider uppercase -mt-0.5">Canalizações</span>
-                </div>
-              </div>
+              <BrandLogo variant="short" className="mb-4" />
               <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
                 Serviços profissionais de canalização em Évora e arredores.
                 Qualidade, confiança e preços justos há mais de 45 anos.
@@ -1243,6 +1249,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </main>
+      </SmoothScroll>
+    </>
   )
 }

@@ -62,6 +62,11 @@
     animation: loadingScreenExit 500ms ease 3200ms forwards;
   }
 
+  .header-enter {
+    animation: headerEnter 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: transform;
+  }
+
   .loading-brand {
     @apply flex items-center justify-center gap-0;
     animation: loadingBrandShift 600ms cubic-bezier(0.22, 1, 0.36, 1) 1650ms forwards;
@@ -190,6 +195,15 @@
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes headerEnter {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(0);
   }
 }
 
@@ -361,6 +375,20 @@
   overflow: hidden;
 }
 
+.hero-intro .hero-slideshow {
+  animation: heroBackdropEnter 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-intro .hero-slideshow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: #fff;
+  animation: heroBackdropVeil 950ms ease-out both;
+  pointer-events: none;
+}
+
 .hero-slide {
   position: absolute;
   inset: 0;
@@ -404,16 +432,6 @@
     );
 }
 
-/* Respect reduced-motion */
-@media (prefers-reduced-motion: reduce) {
-  .hero-slide img {
-    animation: none !important;
-  }
-  .hero-slide {
-    transition-duration: 0.3s !important;
-  }
-}
-
 /* Water drop decoration */
 .water-drop {
   position: relative;
@@ -433,6 +451,26 @@
 @keyframes drip {
   0%, 100% { transform: translateY(0); opacity: 0.3; }
   50% { transform: translateY(8px); opacity: 0.6; }
+}
+
+@keyframes heroBackdropEnter {
+  0% {
+    opacity: 0;
+    transform: scale(1.035);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes heroBackdropVeil {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* Custom scrollbar */
