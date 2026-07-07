@@ -4,10 +4,11 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import gsap from 'gsap'
 import { SplitText } from 'gsap/SplitText'
-import LoadingScreen, { LOADING_DURATION_MS } from '@/components/LoadingScreen'
+import LoadingScreen from '@/components/LoadingScreen'
 import BrandLogo from '@/components/BrandLogo'
 import SmoothScroll from '@/components/SmoothScroll'
 import TapIcon from '@/components/TapIcon'
+import MouseIcon from '@/components/MouseIcon'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(SplitText)
@@ -138,6 +139,14 @@ function ArrowRightIcon({ className = "w-4 h-4" }: { className?: string }) {
   )
 }
 
+function ArrowDownRightIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 7l10 10m0 0V8m0 9H8" />
+    </svg>
+  )
+}
+
 function CameraIcon({ className = "w-6 h-6" }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -263,7 +272,7 @@ const testimonials = [
 
 const navItems = ['Serviços', 'Trabalhos', 'Sobre', 'Testemunhos', 'Contacto']
 const HERO_INTRO_DELAY_MS = 1850
-const HERO_SUPPORTING_CONTENT_DELAY_MS = 700
+const HERO_SUPPORTING_CONTENT_DELAY_MS = 800
 const heroTitleKeywords = new Set(['qualidade', 'confiança'])
 
 /* ───────── Page Component ───────── */
@@ -314,32 +323,34 @@ export default function Home() {
   // Hero slideshow timer
   const [heroSlide, setHeroSlide] = useState(0)
   useEffect(() => {
-    let contentTimeout: number | undefined
+    if (isInitialLoading) return
+
     let supportingContentTimeout: number | undefined
 
-    const loadingTimeout = window.setTimeout(() => {
-      setIsInitialLoading(false)
-      contentTimeout = window.setTimeout(() => {
-        setShowPageContent(true)
-        supportingContentTimeout = window.setTimeout(() => {
-          setShowHeroSupportingContent(true)
-        }, HERO_SUPPORTING_CONTENT_DELAY_MS)
-      }, HERO_INTRO_DELAY_MS)
-    }, LOADING_DURATION_MS)
+    const contentTimeout = window.setTimeout(() => {
+      setShowPageContent(true)
+      supportingContentTimeout = window.setTimeout(() => {
+        setShowHeroSupportingContent(true)
+      }, HERO_SUPPORTING_CONTENT_DELAY_MS)
+    }, HERO_INTRO_DELAY_MS)
 
     return () => {
-      window.clearTimeout(loadingTimeout)
-      if (contentTimeout) window.clearTimeout(contentTimeout)
+      window.clearTimeout(contentTimeout)
       if (supportingContentTimeout) window.clearTimeout(supportingContentTimeout)
     }
-  }, [])
+  }, [isInitialLoading])
 
   useEffect(() => {
+    if (!showPageContent) return
+
+    setHeroSlide(0)
+
     const timer = setInterval(() => {
       setHeroSlide((prev) => (prev + 1) % highlightedPhotos.length)
     }, 5000)
+
     return () => clearInterval(timer)
-  }, [])
+  }, [showPageContent])
 
   useEffect(() => {
     if (isInitialLoading) return
@@ -499,7 +510,7 @@ export default function Home() {
   }
 
   if (isInitialLoading) {
-    return <LoadingScreen />
+    return <LoadingScreen onExitComplete={() => setIsInitialLoading(false)} />
   }
 
   return (
@@ -675,6 +686,15 @@ export default function Home() {
           ))}
         </div>}
 
+        {showPageContent && (
+          <div className="absolute bottom-6 left-6 z-20 hidden items-center gap-2 text-gray-700 md:left-8 md:flex lg:left-10">
+            <MouseIcon className="h-5 w-5 shrink-0" />
+            <span className="text-xs font-semibold uppercase tracking-[0.18em]">
+              Scroll to Explore
+            </span>
+          </div>
+        )}
+
         {/* Background decorations (on top of overlay) */}
         {showPageContent && <div className="absolute inset-0 z-[2] pointer-events-none">
           <div className="absolute top-20 -right-32 w-[500px] h-[500px] rounded-full bg-brand-100/30 blur-3xl" />
@@ -700,7 +720,7 @@ export default function Home() {
             <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 ${showHeroSupportingContent ? 'animate-fade-in-up' : 'invisible pointer-events-none'}`}>
               <a href="#contacto" className="btn-primary w-full sm:w-auto">
                 Pedir Orçamento Grátis
-                <ArrowRightIcon />
+                <ArrowDownRightIcon className="w-5 h-5" />
               </a>
               <a href="#servicos" className="btn-secondary w-full sm:w-auto !bg-white/80 !border-white/70 hover:!bg-white/90 hover:!translate-y-0">
                 Descobrir Mais
