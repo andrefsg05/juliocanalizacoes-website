@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import gsap from 'gsap'
 import { SplitText } from 'gsap/SplitText'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import LoadingScreen from '@/components/LoadingScreen'
 import BrandLogo from '@/components/BrandLogo'
 import SmoothScroll from '@/components/SmoothScroll'
@@ -11,7 +12,7 @@ import TapIcon from '@/components/TapIcon'
 import MouseIcon from '@/components/MouseIcon'
 
 if (typeof window !== 'undefined') {
-  gsap.registerPlugin(SplitText)
+  gsap.registerPlugin(SplitText, ScrollTrigger)
 }
 
 /* ───────── Icon Components ───────── */
@@ -280,6 +281,8 @@ const heroTitleKeywords = new Set(['qualidade', 'confiança'])
 export default function Home() {
   const headerRef = useRef<HTMLElement | null>(null)
   const heroTitleRef = useRef<HTMLHeadingElement | null>(null)
+  const introPhraseRef = useRef<HTMLParagraphElement | null>(null)
+  const experienceNumberRef = useRef<HTMLSpanElement | null>(null)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [showPageContent, setShowPageContent] = useState(false)
   const [showHeroSupportingContent, setShowHeroSupportingContent] = useState(false)
@@ -423,6 +426,35 @@ export default function Home() {
       split?.revert()
     }
   }, [isInitialLoading])
+
+  useEffect(() => {
+    if (!showPageContent) return
+
+    const phrase = introPhraseRef.current
+    const number = experienceNumberRef.current
+    if (!phrase || !number) return
+
+    const counter = { value: 0 }
+
+    const tween = gsap.to(counter, {
+      value: 45,
+      duration: 4,
+      ease: 'power2.out',
+      scrollTrigger: {
+        trigger: phrase,
+        start: 'top 100%',
+        once: true,
+      },
+      onUpdate: () => {
+        number.textContent = String(Math.round(counter.value)).padStart(2, '0')
+      },
+    })
+
+    return () => {
+      tween.scrollTrigger?.kill()
+      tween.kill()
+    }
+  }, [showPageContent])
 
   useEffect(() => {
     const updateHeaderState = () => {
@@ -722,6 +754,16 @@ export default function Home() {
       </section>
 
       {showPageContent && <>
+      <section className="section-padding bg-gradient-to-b from-gray-50/80 to-white">
+        <div className="container mx-auto px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <p ref={introPhraseRef} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-[1.1] tracking-tight text-balance">
+              Mais de{' '}
+              <span ref={experienceNumberRef} className="gradient-text">45</span> anos a resolver problemas de canalização com profissionalismo, transparência e preços justos. Do pequeno reparo à grande remodelação.
+            </p>
+          </div>
+        </div>
+      </section>
       {/* ── Services Section ── */}
       <section id="servicos" className="section-padding bg-gradient-to-b from-gray-50/80 to-white">
         <div className="container mx-auto px-6 lg:px-8">
