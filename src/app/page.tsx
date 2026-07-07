@@ -544,76 +544,66 @@ export default function Home() {
             </button>
           </div>
 
-          <div
-            className={`header-desktop-wrapper hidden md:flex ${
-              hasScrolled ? 'header-desktop-wrapper-scrolled' : ''
-            }`}
-          >
+          <div className="header-desktop-shell hidden md:block">
             <div
-              className={`header-desktop-stage ${
-                hasScrolled ? 'header-desktop-stage-scrolled' : ''
+              aria-hidden={!fullHeaderActive}
+              className={`header-desktop-view header-desktop-full ${
+                fullHeaderActive ? 'header-desktop-view-visible' : 'header-desktop-view-hidden'
               }`}
             >
-              <div
-                aria-hidden={!fullHeaderActive}
-                className={`header-desktop-view header-desktop-view-full ${
-                  fullHeaderActive ? 'header-desktop-view-visible' : 'header-desktop-view-hidden'
-                }`}
+              <a
+                href="#"
+                tabIndex={fullHeaderActive ? undefined : -1}
+                className="flex min-w-0 items-center"
               >
+                <BrandLogo className="gap-2.5" />
+              </a>
+
+              <div className="flex items-center gap-8">
+                {navItems.map((item) => (
+                  <a
+                    key={item}
+                    href={`#${item.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}
+                    tabIndex={fullHeaderActive ? undefined : -1}
+                    className="text-[0.95rem] font-medium text-gray-600 hover:text-brand-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-500 after:transition-all after:duration-300 hover:after:w-full"
+                  >
+                    {item}
+                  </a>
+                ))}
+                <a
+                  href="tel:+351964030969"
+                  tabIndex={fullHeaderActive ? undefined : -1}
+                  className="btn-primary text-sm !px-5 !py-2.5"
+                >
+                  <PhoneIcon className="w-4 h-4" />
+                  Ligar Agora
+                </a>
+              </div>
+            </div>
+
+            <div
+              aria-hidden={!compactHeaderActive}
+              className={`header-desktop-view header-desktop-compact ${
+                compactHeaderActive ? 'header-desktop-view-visible' : 'header-desktop-view-hidden'
+              }`}
+            >
+              <div className="flex items-center rounded-full border border-white/30 bg-gray-600/97 px-2.5 py-1.5 backdrop-blur-xl shadow-lg shadow-gray-900/10">
                 <a
                   href="#"
-                  tabIndex={fullHeaderActive ? undefined : -1}
+                  tabIndex={compactHeaderActive ? undefined : -1}
                   className="flex min-w-0 items-center"
                 >
-                  <BrandLogo className="gap-2.5" />
+                  <BrandLogo variant="short" />
                 </a>
 
-                <div className="flex items-center gap-8">
-                  {navItems.map((item) => (
-                    <a
-                      key={item}
-                      href={`#${item.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}
-                      tabIndex={fullHeaderActive ? undefined : -1}
-                      className="text-[0.95rem] font-medium text-gray-600 hover:text-brand-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-500 after:transition-all after:duration-300 hover:after:w-full"
-                    >
-                      {item}
-                    </a>
-                  ))}
-                  <a
-                    href="tel:+351964030969"
-                    tabIndex={fullHeaderActive ? undefined : -1}
-                    className="btn-primary text-sm !px-5 !py-2.5"
-                  >
-                    <PhoneIcon className="w-4 h-4" />
-                    Ligar Agora
-                  </a>
-                </div>
-              </div>
-
-              <div
-                aria-hidden={!compactHeaderActive}
-                className={`header-desktop-view header-desktop-view-compact ${
-                  compactHeaderActive ? 'header-desktop-view-visible' : 'header-desktop-view-hidden'
-                }`}
-              >
-                <div className="flex items-center rounded-full border border-white/30 bg-gray-600/97 px-2.5 py-1.5 backdrop-blur-xl shadow-lg shadow-gray-900/10">
-                  <a
-                    href="#"
-                    tabIndex={compactHeaderActive ? undefined : -1}
-                    className="flex min-w-0 items-center"
-                  >
-                    <BrandLogo variant="short" />
-                  </a>
-
-                  <a
-                    href="tel:+351964030969"
-                    aria-label="Ligar agora"
-                    tabIndex={compactHeaderActive ? undefined : -1}
-                    className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/85 transition-colors hover:bg-white/15 active:bg-white/20"
-                  >
-                    <PhoneIcon className="w-4 h-4" />
-                  </a>
-                </div>
+                <a
+                  href="tel:+351964030969"
+                  aria-label="Ligar agora"
+                  tabIndex={compactHeaderActive ? undefined : -1}
+                  className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/85 transition-colors hover:bg-white/15 active:bg-white/20"
+                >
+                  <PhoneIcon className="w-4 h-4" />
+                </a>
               </div>
             </div>
           </div>
