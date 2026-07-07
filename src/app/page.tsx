@@ -2,10 +2,16 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import gsap from 'gsap'
+import { SplitText } from 'gsap/SplitText'
 import LoadingScreen, { LOADING_DURATION_MS } from '@/components/LoadingScreen'
 import BrandLogo from '@/components/BrandLogo'
 import SmoothScroll from '@/components/SmoothScroll'
 import TapIcon from '@/components/TapIcon'
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(SplitText)
+}
 
 /* ───────── Icon Components ───────── */
 
@@ -255,20 +261,19 @@ const testimonials = [
   },
 ]
 
-const stats = [
-  { value: '45+', label: 'Anos de Experiência' },
-  { value: '3.500+', label: 'Clientes Satisfeitos' },
-  { value: 'Évora', label: 'Zona de Atuação' },
-  { value: '100%', label: 'Trabalhos Garantidos' },
-]
-
 const navItems = ['Serviços', 'Trabalhos', 'Sobre', 'Testemunhos', 'Contacto']
+const HERO_INTRO_DELAY_MS = 1850
+const HERO_SUPPORTING_CONTENT_DELAY_MS = 700
+const heroTitleKeywords = new Set(['qualidade', 'confiança'])
 
 /* ───────── Page Component ───────── */
 
 export default function Home() {
   const headerRef = useRef<HTMLElement | null>(null)
+  const heroTitleRef = useRef<HTMLHeadingElement | null>(null)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
+  const [showPageContent, setShowPageContent] = useState(false)
+  const [showHeroSupportingContent, setShowHeroSupportingContent] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -309,11 +314,24 @@ export default function Home() {
   // Hero slideshow timer
   const [heroSlide, setHeroSlide] = useState(0)
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
+    let contentTimeout: number | undefined
+    let supportingContentTimeout: number | undefined
+
+    const loadingTimeout = window.setTimeout(() => {
       setIsInitialLoading(false)
+      contentTimeout = window.setTimeout(() => {
+        setShowPageContent(true)
+        supportingContentTimeout = window.setTimeout(() => {
+          setShowHeroSupportingContent(true)
+        }, HERO_SUPPORTING_CONTENT_DELAY_MS)
+      }, HERO_INTRO_DELAY_MS)
     }, LOADING_DURATION_MS)
 
-    return () => window.clearTimeout(timeout)
+    return () => {
+      window.clearTimeout(loadingTimeout)
+      if (contentTimeout) window.clearTimeout(contentTimeout)
+      if (supportingContentTimeout) window.clearTimeout(supportingContentTimeout)
+    }
   }, [])
 
   useEffect(() => {
@@ -322,6 +340,78 @@ export default function Home() {
     }, 5000)
     return () => clearInterval(timer)
   }, [])
+
+  useEffect(() => {
+    if (isInitialLoading) return
+
+    const title = heroTitleRef.current
+    if (!title) return
+
+    let split: SplitText | null = null
+    let cancelled = false
+
+    const createSplit = () => {
+      if (cancelled) return
+
+      split = SplitText.create(title, {
+        type: 'lines,words,chars',
+        linesClass: 'hero-title-line',
+        wordsClass: 'hero-title-word',
+        charsClass: 'hero-title-char',
+        aria: 'auto',
+        autoSplit: true,
+        onSplit: (self) => {
+          const timeline = gsap.timeline({
+            defaults: {
+              ease: 'power3.out',
+            },
+          })
+
+          gsap.set(title, { autoAlpha: 1 })
+          gsap.set(self.lines, { y: 34, opacity: 0 })
+          gsap.set(self.chars, { clearProps: 'opacity,transform' })
+
+          self.lines.forEach((line, index) => {
+            const lineStart = index * 0.24
+            const keywordChars = Array.from(line.querySelectorAll<HTMLElement>('.hero-title-word'))
+              .filter((word) => heroTitleKeywords.has((word.textContent || '').trim().toLocaleLowerCase('pt-PT')))
+              .flatMap((word) => Array.from(word.querySelectorAll<HTMLElement>('.hero-title-char')))
+
+            gsap.set(keywordChars, { y: 18, opacity: 0 })
+
+            timeline.to(line, { y: 0, opacity: 1, duration: 1.25 }, lineStart)
+
+            if (keywordChars.length > 0) {
+              timeline.to(
+                keywordChars,
+                {
+                  y: 0,
+                  opacity: 1,
+                  duration: 0.5,
+                  ease: 'power2.out',
+                  stagger: 0.04,
+                },
+                lineStart + 0.12
+              )
+            }
+          })
+
+          return timeline
+        },
+      })
+    }
+
+    if (document.fonts?.ready) {
+      void document.fonts.ready.then(createSplit)
+    } else {
+      createSplit()
+    }
+
+    return () => {
+      cancelled = true
+      split?.revert()
+    }
+  }, [isInitialLoading])
 
   useEffect(() => {
     const updateHeaderState = () => {
@@ -415,7 +505,7 @@ export default function Home() {
   return (
     <>
       {/* ── Navbar ── */}
-      <header
+      {showPageContent && <header
         ref={headerRef}
         className={`header-enter absolute inset-x-0 top-0 z-50 border-b transition-all duration-300 ease-out md:fixed ${
           mobileMenuOpen
@@ -473,7 +563,7 @@ export default function Home() {
                       key={item}
                       href={`#${item.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}
                       tabIndex={fullHeaderActive ? undefined : -1}
-                      className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-500 after:transition-all after:duration-300 hover:after:w-full"
+                      className="text-[0.95rem] font-medium text-gray-600 hover:text-brand-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-500 after:transition-all after:duration-300 hover:after:w-full"
                     >
                       {item}
                     </a>
@@ -544,13 +634,13 @@ export default function Home() {
               </div>
             </div>
         </nav>
-      </header>
+      </header>}
 
       <SmoothScroll>
       {/* ── Hero Section ── */}
-      <section className="hero-intro relative pt-32 pb-20 md:pt-40 md:pb-32 lg:pt-48 lg:pb-40 overflow-hidden">
+      <section className="hero-intro relative flex min-h-[100svh] items-center overflow-hidden bg-white pt-32 pb-20 md:pt-40 md:pb-32 lg:pt-48 lg:pb-40">
         {/* Background photo slideshow */}
-        <div className="hero-slideshow" aria-hidden="true">
+        {showPageContent && <div className="hero-slideshow" aria-hidden="true">
           {highlightedPhotos.map((photo, i) => (
             <div key={i} className={`hero-slide ${i === heroSlide ? 'active' : ''}`}>
               <Image
@@ -564,13 +654,13 @@ export default function Home() {
               />
             </div>
           ))}
-        </div>
+        </div>}
 
         {/* White overlay for text readability */}
-        <div className="hero-overlay" />
+        {showPageContent && <div className="hero-overlay" />}
 
         {/* Slide indicators */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+        {showPageContent && <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
           {highlightedPhotos.map((_, i) => (
             <button
               key={i}
@@ -583,52 +673,45 @@ export default function Home() {
               }`}
             />
           ))}
-        </div>
+        </div>}
 
         {/* Background decorations (on top of overlay) */}
-        <div className="absolute inset-0 z-[2] pointer-events-none">
+        {showPageContent && <div className="absolute inset-0 z-[2] pointer-events-none">
           <div className="absolute top-20 -right-32 w-[500px] h-[500px] rounded-full bg-brand-100/30 blur-3xl" />
           <div className="absolute -bottom-20 -left-32 w-[400px] h-[400px] rounded-full bg-brand-50/40 blur-3xl" />
-        </div>
+        </div>}
 
-        <div className="container mx-auto px-6 lg:px-8 relative z-10">
+        <div className="container relative z-10 mx-auto w-full px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-6 animate-fade-in-up text-balance">
+            <h1
+              ref={heroTitleRef}
+              className="hero-title-gsap text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-6 text-balance"
+            >
               Canalizações com{' '}
               <span className="gradient-text">qualidade</span>{' '}
               e{' '}
               <span className="gradient-text">confiança</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 animate-fade-in-up animate-delay-200 text-balance">
-              Mais de 45 anos a resolver problemas de canalização com
-              profissionalismo, transparência e preços justos. Do pequeno
-              reparo à grande remodelação.
+            <p className={`text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 text-balance ${showHeroSupportingContent ? 'animate-fade-in-up' : 'invisible'}`}>
+              Do pequeno reparo à grande remodelação.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up animate-delay-300">
+            <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 ${showHeroSupportingContent ? 'animate-fade-in-up' : 'invisible pointer-events-none'}`}>
               <a href="#contacto" className="btn-primary w-full sm:w-auto">
                 Pedir Orçamento Grátis
                 <ArrowRightIcon />
               </a>
-              <a href="#servicos" className="btn-secondary w-full sm:w-auto">
-                Ver Serviços
+              <a href="#servicos" className="btn-secondary w-full sm:w-auto !bg-white/80 !border-white/70 hover:!bg-white/90 hover:!translate-y-0">
+                Descobrir Mais
               </a>
             </div>
 
-            {/* Quick stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 md:mt-20 animate-fade-in-up animate-delay-500">
-              {stats.map((stat, i) => (
-                <div key={i} className="stat-card">
-                  <div className="text-2xl md:text-3xl font-bold gradient-text">{stat.value}</div>
-                  <div className="text-xs md:text-sm text-gray-500 mt-1">{stat.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
 
+      {showPageContent && <>
       {/* ── Services Section ── */}
       <section id="servicos" className="section-padding bg-gradient-to-b from-gray-50/80 to-white">
         <div className="container mx-auto px-6 lg:px-8">
@@ -1249,6 +1332,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
+      </>}
       </SmoothScroll>
     </>
   )
