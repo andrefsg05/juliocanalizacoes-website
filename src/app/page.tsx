@@ -5,6 +5,7 @@ import Image from 'next/image'
 import gsap from 'gsap'
 import { SplitText } from 'gsap/SplitText'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import useEmblaCarousel from 'embla-carousel-react'
 import LoadingScreen from '@/components/LoadingScreen'
 import BrandLogo from '@/components/BrandLogo'
 import SmoothScroll from '@/components/SmoothScroll'
@@ -283,6 +284,51 @@ export default function Home() {
   const heroTitleRef = useRef<HTMLHeadingElement | null>(null)
   const introPhraseRef = useRef<HTMLParagraphElement | null>(null)
   const experienceNumberRef = useRef<HTMLSpanElement | null>(null)
+  const heroTransitionRef = useRef<HTMLDivElement | null>(null)
+  const heroSectionRef = useRef<HTMLElement | null>(null)
+  const heroDarkOverlayRef = useRef<HTMLDivElement | null>(null)
+  const ServicesSectionRef = useRef<HTMLElement | null>(null)
+  const servicesTitleRevealRef = useRef<HTMLSpanElement | null>(null)
+  const servicesPhraseRef = useRef<HTMLParagraphElement | null>(null)
+  const servicesPhraseTopRef = useRef<HTMLSpanElement | null>(null)
+  const servicesPhraseBottomRef = useRef<HTMLSpanElement | null>(null)
+  const servicesDeckRef = useRef<HTMLDivElement | null>(null)
+  const [servicesCarouselRef, servicesCarouselApi] = useEmblaCarousel({
+    dragFree: true,
+    loop: false,
+    align: 'start',
+    containScroll: 'trimSnaps',
+  })
+  const [canScrollServicesPrev, setCanScrollServicesPrev] = useState(false)
+  const [canScrollServicesNext, setCanScrollServicesNext] = useState(false)
+
+  const updateServicesCarouselButtons = useCallback(() => {
+    if (!servicesCarouselApi) return
+
+    setCanScrollServicesPrev(servicesCarouselApi.canScrollPrev())
+    setCanScrollServicesNext(servicesCarouselApi.canScrollNext())
+  }, [servicesCarouselApi])
+
+  const scrollServicesPrev = useCallback(() => {
+    servicesCarouselApi?.scrollPrev()
+  }, [servicesCarouselApi])
+
+  const scrollServicesNext = useCallback(() => {
+    servicesCarouselApi?.scrollNext()
+  }, [servicesCarouselApi])
+
+  useEffect(() => {
+    if (!servicesCarouselApi) return
+
+    updateServicesCarouselButtons()
+    servicesCarouselApi.on('select', updateServicesCarouselButtons)
+    servicesCarouselApi.on('reInit', updateServicesCarouselButtons)
+
+    return () => {
+      servicesCarouselApi.off('select', updateServicesCarouselButtons)
+      servicesCarouselApi.off('reInit', updateServicesCarouselButtons)
+    }
+  }, [servicesCarouselApi, updateServicesCarouselButtons])
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [showPageContent, setShowPageContent] = useState(false)
   const [showHeroSupportingContent, setShowHeroSupportingContent] = useState(false)
@@ -430,29 +476,228 @@ export default function Home() {
   useEffect(() => {
     if (!showPageContent) return
 
-    const phrase = introPhraseRef.current
-    const number = experienceNumberRef.current
-    if (!phrase || !number) return
+    const transition = heroTransitionRef.current
+    const heroSection = heroSectionRef.current
+    const overlay = heroDarkOverlayRef.current
+    const servicesSection = ServicesSectionRef.current
+    const servicesTitleReveal = servicesTitleRevealRef.current
+    if (!transition || !heroSection || !overlay || !servicesSection || !servicesTitleReveal) return
 
-    const counter = { value: 0 }
+    gsap.set(overlay, { opacity: 0 })
+    gsap.set(servicesTitleReveal, { clipPath: 'circle(0% at 50% 50%)' })
 
-    const tween = gsap.to(counter, {
-      value: 45,
-      duration: 4,
-      ease: 'power2.out',
+    const pinTrigger = ScrollTrigger.create({
+      trigger: transition,
+      start: 'top top',
+      end: () => `+=${servicesSection.offsetHeight}`,
+      pin: heroSection,
+      pinSpacing: false,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
+    })
+
+    const overlayTween = gsap.to(overlay, {
+      opacity: 0.55,
+      ease: 'none',
       scrollTrigger: {
-        trigger: phrase,
-        start: 'top 100%',
-        once: true,
+        trigger: servicesSection,
+        start: 'top bottom',
+        end: 'top top',
+        scrub: true,
       },
-      onUpdate: () => {
-        number.textContent = String(Math.round(counter.value)).padStart(2, '0')
+    })
+
+    const titleRevealTween = gsap.to(servicesTitleReveal, {
+      clipPath: 'circle(120% at 50% 50%)',
+      ease: 'none',
+      scrollTrigger: {
+        trigger: servicesSection,
+        start: 'top bottom',
+        end: 'top top',
+        scrub: true,
+      },
+    })
+
+    ScrollTrigger.refresh()
+
+    return () => {
+      pinTrigger.kill()
+      overlayTween.scrollTrigger?.kill()
+      overlayTween.kill()
+      titleRevealTween.scrollTrigger?.kill()
+      titleRevealTween.kill()
+    }
+  }, [showPageContent])
+
+  useEffect(() => {
+    if (!showPageContent) return
+
+    const phrase = servicesPhraseRef.current
+    const topPhrase = servicesPhraseTopRef.current
+    const bottomPhrase = servicesPhraseBottomRef.current
+    const servicesDeck = servicesDeckRef.current
+
+    if (!phrase || !topPhrase || !bottomPhrase || !servicesDeck) return
+
+    let split: SplitText | null = null
+    let tween: gsap.core.Tween | null = null
+    let separateTimeline: gsap.core.Timeline | null = null
+
+    gsap.set([topPhrase, bottomPhrase], {
+      y: 0,
+      scale: 1,
+      transformOrigin: 'center center',
+    })
+    gsap.set(servicesDeck, {
+      autoAlpha: 0,
+      y: 24,
+    })
+
+    split = SplitText.create(phrase, {
+      type: 'words',
+      tag: 'span',
+      wordsClass: 'services-phrase-word',
+      aria: 'auto',
+      onSplit: (self) => {
+        tween?.scrollTrigger?.kill()
+        tween?.kill()
+        separateTimeline?.kill()
+
+        gsap.set(phrase, { autoAlpha: 1 })
+        gsap.set([topPhrase, bottomPhrase], {
+          y: 0,
+          scale: 1,
+          transformOrigin: 'center center',
+        })
+        gsap.set(servicesDeck, {
+          autoAlpha: 0,
+          y: 24,
+        })
+
+        gsap.set(self.words, {
+          xPercent: 25,
+          opacity: 0,
+          display: 'inline-block',
+        })
+
+        tween = gsap.to(self.words, {
+          xPercent: 0,
+          opacity: 1,
+          duration: 0.75,
+          ease: 'power2.inOut',
+          stagger: 0.15,
+          scrollTrigger: {
+            trigger: phrase,
+            start: 'top 75%',
+            once: true,
+          },
+          onComplete: () => {
+            separateTimeline = gsap.timeline({
+              delay: 0.3,
+            })
+
+            separateTimeline
+              .to(topPhrase, {
+                y: '-31svh',
+                scale: 0.55,
+                duration: 1.1,
+                ease: 'power3.inOut',
+              }, 0)
+              .to(bottomPhrase, {
+                y: '33svh',
+                scale: 0.55,
+                duration: 1.1,
+                ease: 'power3.inOut',
+              }, 0)
+              .to(servicesDeck, {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.7,
+                ease: 'power2.out',
+              }, 0.55)
+          },
+        })
+
+        return tween
       },
     })
 
     return () => {
-      tween.scrollTrigger?.kill()
-      tween.kill()
+      separateTimeline?.kill()
+      tween?.scrollTrigger?.kill()
+      tween?.kill()
+      split?.revert()
+    }
+  }, [showPageContent])
+
+  useEffect(() => {
+    if (!showPageContent) return
+
+    const phrase = introPhraseRef.current
+    const number = experienceNumberRef.current
+    if (!phrase || !number) return
+
+    let split: SplitText | null = null
+    let timeline: gsap.core.Timeline | null = null
+    const counter = { value: 0 }
+
+    number.textContent = '00'
+
+    split = SplitText.create(phrase, {
+      type: 'lines',
+      tag: 'span',
+      linesClass: 'intro-phrase-line',
+      aria: 'auto',
+      autoSplit: true,
+      onSplit: (self) => {
+        timeline?.scrollTrigger?.kill()
+        timeline?.kill()
+
+        const activeNumber = phrase.querySelector<HTMLElement>('[data-experience-number]')
+        if (!activeNumber) return
+
+        counter.value = 0
+        activeNumber.textContent = '00'
+
+        gsap.set(self.lines, { x: -25, color: '#ffffff', display: 'block' })
+
+        timeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: phrase,
+            start: 'top 100%',
+            once: true,
+          },
+        })
+
+        timeline
+          .to(self.lines, {
+            x: 0,
+            color: '#111827',
+            duration: 1.35,
+            ease: 'power2.out',
+            stagger: 0.65,
+          })
+          .to(
+            counter,
+            {
+              value: 45,
+              duration: 5,
+              ease: 'power2.out',
+              onUpdate: () => {
+                activeNumber.textContent = String(Math.round(counter.value)).padStart(2, '0')
+              },
+            },
+            '<'
+          )
+
+        return timeline
+      },
+    })
+
+    return () => {
+      timeline?.scrollTrigger?.kill()
+      timeline?.kill()
+      split?.revert()
     }
   }, [showPageContent])
 
@@ -632,7 +877,7 @@ export default function Home() {
                   href="tel:+351964030969"
                   aria-label="Ligar agora"
                   tabIndex={compactHeaderActive ? undefined : -1}
-                  className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/85 transition-colors hover:bg-white/15 active:bg-white/20"
+                  className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full text-white/85 transition-colors hover:bg-white/15"
                 >
                   <PhoneIcon className="w-4 h-4" />
                 </a>
@@ -670,8 +915,9 @@ export default function Home() {
       </header>}
 
       <SmoothScroll>
+      <div ref={heroTransitionRef} className="relative">
       {/* ── Hero Section ── */}
-      <section className="hero-intro relative flex min-h-[100svh] items-center overflow-hidden bg-white pt-32 pb-20 md:pt-40 md:pb-32 lg:pt-48 lg:pb-40">
+      <section ref={heroSectionRef} className="hero-intro relative z-0 flex min-h-[100svh] items-center overflow-hidden bg-white pt-32 pb-20 md:pt-40 md:pb-32 lg:pt-48 lg:pb-40">
         {/* Background photo slideshow */}
         {showPageContent && <div className="hero-slideshow" aria-hidden="true">
           {highlightedPhotos.map((photo, i) => (
@@ -724,83 +970,153 @@ export default function Home() {
         </div>}
 
         <div className="container relative z-10 mx-auto w-full px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
+          <div className="max-w-6xl mx-auto text-center">
             <h1
               ref={heroTitleRef}
-              className="hero-title-gsap text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-6 text-balance"
+              className="hero-title-gsap text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-12 text-balance"
             >
               Canalizações com{' '}
               <span className="gradient-text">qualidade</span>{' '}
               e{' '}
-              <span className="gradient-text">confiança</span>
+              <span className="gradient-text">confiança</span>.
             </h1>
 
-            <p className={`text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 text-balance ${showHeroSupportingContent ? 'animate-fade-in-up' : 'invisible'}`}>
-              Do pequeno reparo à grande remodelação.
-            </p>
-
-            <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 ${showHeroSupportingContent ? 'animate-fade-in-up' : 'invisible pointer-events-none'}`}>
-              <a href="#contacto" className="btn-primary w-full sm:w-auto">
+            <div className={showHeroSupportingContent ? 'animate-fade-in-up' : 'invisible pointer-events-none'}>
+              <a href="#contacto" className="btn-hero w-full !rounded-full sm:w-auto">
                 Pedir Orçamento Grátis
                 <ArrowDownRightIcon className="w-5 h-5" />
-              </a>
-              <a href="#servicos" className="btn-secondary w-full sm:w-auto !bg-white/80 !border-white/70 hover:!bg-white/90 hover:!translate-y-0">
-                Descobrir Mais
               </a>
             </div>
 
           </div>
         </div>
+        {showPageContent && (
+          <div
+            ref={heroDarkOverlayRef}
+            className="pointer-events-none absolute inset-0 z-[25] bg-black opacity-0"
+            aria-hidden="true"
+          />
+        )}
       </section>
 
+      {showPageContent && (
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[50svh] bg-brand-600"
+          aria-hidden="true"
+        />
+      )}
+
+      {showPageContent && (
+        <section id="servicos" ref={ServicesSectionRef} className="relative z-30 min-h-[100svh] overflow-hidden rounded-[2rem] bg-brand-600 sm:rounded-[3rem]">
+          <div className="relative z-10 px-8 pt-8 lg:px-10 lg:pt-10">
+            <h2 className="relative inline-block text-4xl font-bold leading-[1.1] tracking-tight text-balance sm:text-5xl md:text-6xl lg:text-7xl">
+              <span className="block text-white/25">Serviços</span>
+              <span
+                ref={servicesTitleRevealRef}
+                className="absolute inset-0 block text-white"
+                style={{ clipPath: 'circle(0% at 50% 50%)' }}
+                aria-hidden="true"
+              >
+                Serviços
+              </span>
+            </h2>
+          </div>
+          <div className="absolute inset-0 z-10 flex items-center justify-center px-8 text-center lg:px-10">
+            <p
+              ref={servicesPhraseRef}
+              className="max-w-5xl text-4xl font-bold leading-[1.1] tracking-tight text-white text-balance sm:text-5xl md:text-6xl lg:text-7xl"
+              style={{ opacity: 0 }}
+            >
+              <span ref={servicesPhraseTopRef} className="inline-block">
+                Do pequeno reparo
+              </span>{' '}
+              <span ref={servicesPhraseBottomRef} className="inline-block">
+                à grande remodelação.
+              </span>
+            </p>
+
+            <div
+              ref={servicesDeckRef}
+              className="absolute left-1/2 top-1/2 w-[min(560px,calc(100%-3rem))] -translate-x-1/2 -translate-y-1/2 overflow-visible sm:w-[min(760px,calc(100%-4rem))] lg:w-[min(1040px,calc(100%-10rem))]"
+              style={{ opacity: 0 }}
+              aria-label="Serviços disponíveis"
+            >
+              <button
+                type="button"
+                onClick={scrollServicesPrev}
+                disabled={!canScrollServicesPrev}
+                className="absolute left-0 top-1/2 z-20 hidden h-12 w-12 -translate-x-[calc(100%+1rem)] -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/25 bg-white text-brand-600 shadow-xl shadow-black/20 transition hover:-translate-x-[calc(100%+1rem)] hover:scale-105 hover:bg-brand-50 disabled:pointer-events-none disabled:opacity-35 lg:flex"
+                aria-label="Ver serviços anteriores"
+              >
+                <ChevronLeftIcon className="h-6 w-6" />
+              </button>
+
+              <button
+                type="button"
+                onClick={scrollServicesNext}
+                disabled={!canScrollServicesNext}
+                className="absolute right-0 top-1/2 z-20 hidden h-12 w-12 translate-x-[calc(100%+1rem)] -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/25 bg-white text-brand-600 shadow-xl shadow-black/20 transition hover:translate-x-[calc(100%+1rem)] hover:scale-105 hover:bg-brand-50 disabled:pointer-events-none disabled:opacity-35 lg:flex"
+                aria-label="Ver serviços seguintes"
+              >
+                <ChevronRightIcon className="h-6 w-6" />
+              </button>
+
+              <span className="pointer-events-none absolute inset-y-0 left-0 z-10 w-4 bg-gradient-to-r from-brand-600 to-transparent sm:w-6" aria-hidden="true" />
+              <span className="pointer-events-none absolute inset-y-0 right-0 z-10 w-4 bg-gradient-to-l from-brand-600 to-transparent sm:w-6" aria-hidden="true" />
+              <div ref={servicesCarouselRef} className="cursor-grab select-none overflow-hidden active:cursor-grabbing">
+                <div className="flex touch-pan-y gap-4">
+                  {services.map((service, i) => (
+                    <article
+                      key={service.title}
+                      className="min-h-[340px] min-w-0 flex-[0_0_295px] rounded-lg border border-white/20 bg-white p-4 text-left text-gray-900 shadow-2xl shadow-black/25 sm:min-h-[370px] sm:flex-[0_0_380px] sm:p-5 lg:min-h-[420px] lg:flex-[0_0_410px] lg:p-6"
+                    >
+                      <div className="mb-5 flex items-start justify-between gap-5 lg:mb-6 lg:gap-6">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-brand-100 bg-brand-50 lg:h-12 lg:w-12">
+                          <service.icon className="h-5 w-5 text-brand-600 lg:h-6 lg:w-6" />
+                        </div>
+                        <span className="text-sm font-semibold text-brand-600">
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                      </div>
+
+                      <h3 className="text-lg font-bold leading-tight text-gray-900 sm:text-xl lg:text-2xl">
+                        {service.title}
+                      </h3>
+
+                      <p className="mt-3 text-xs leading-relaxed text-gray-500 sm:text-sm lg:text-base">
+                        {service.description}
+                      </p>
+
+                      <ul className="mt-4 space-y-2 sm:mt-5 sm:space-y-2.5">
+                        {service.features.map((feature) => (
+                          <li key={feature} className="flex items-center gap-2 text-xs text-gray-600 sm:gap-3 sm:text-sm">
+                            <CheckCircleIcon className="h-4 w-4 flex-shrink-0 text-brand-500" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+      </div>
+
       {showPageContent && <>
+
       <section className="section-padding bg-gradient-to-b from-gray-50/80 to-white">
         <div className="container mx-auto px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
-            <p ref={introPhraseRef} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-[1.1] tracking-tight text-balance">
+            <p id="introPhrase" ref={introPhraseRef} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-[1.1] tracking-tight text-balance">
               Mais de{' '}
-              <span ref={experienceNumberRef} className="gradient-text">45</span> anos a resolver problemas de canalização com profissionalismo, transparência e preços justos. Do pequeno reparo à grande remodelação.
+              <span ref={experienceNumberRef} data-experience-number className="gradient-text">45</span> anos a resolver problemas de canalização com profissionalismo, transparência e preços justos. Do pequeno reparo à grande remodelação.
             </p>
           </div>
         </div>
       </section>
-      {/* ── Services Section ── */}
-      <section id="servicos" className="section-padding bg-gradient-to-b from-gray-50/80 to-white">
-        <div className="container mx-auto px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="inline-block text-sm font-semibold text-brand-600 tracking-wider uppercase mb-3">O Que Fazemos</span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 text-balance">
-              Serviços especializados de canalização
-            </h2>
-            <p className="text-gray-500 text-lg">
-              Soluções completas para todas as necessidades de canalização da sua casa ou negócio.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {services.map((service, i) => (
-              <div key={i} className="service-card group">
-                <div className="relative z-10">
-                  <div className="w-14 h-14 rounded-2xl bg-brand-50 border border-brand-100 flex items-center justify-center mb-6 group-hover:bg-brand-100 group-hover:border-brand-200 transition-colors duration-500">
-                    <service.icon className="w-7 h-7 text-brand-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{service.title}</h3>
-                  <p className="text-gray-500 mb-5 leading-relaxed text-sm">{service.description}</p>
-                  <ul className="space-y-2">
-                    {service.features.map((feature, j) => (
-                      <li key={j} className="flex items-center gap-2 text-sm text-gray-600">
-                        <CheckCircleIcon className="w-4 h-4 text-brand-500 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── Gallery Section ── */}
       <section id="trabalhos" className="section-padding relative overflow-hidden">
         {/* Background */}
