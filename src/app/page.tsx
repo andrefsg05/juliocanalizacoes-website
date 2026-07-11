@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import gsap from 'gsap'
 import { SplitText } from 'gsap/SplitText'
@@ -282,8 +283,6 @@ const heroTitleKeywords = new Set(['qualidade', 'confiança'])
 export default function Home() {
   const headerRef = useRef<HTMLElement | null>(null)
   const heroTitleRef = useRef<HTMLHeadingElement | null>(null)
-  const introPhraseRef = useRef<HTMLParagraphElement | null>(null)
-  const experienceNumberRef = useRef<HTMLSpanElement | null>(null)
   const heroTransitionRef = useRef<HTMLDivElement | null>(null)
   const heroSectionRef = useRef<HTMLElement | null>(null)
   const heroDarkOverlayRef = useRef<HTMLDivElement | null>(null)
@@ -626,77 +625,6 @@ export default function Home() {
       separateTimeline?.kill()
       tween?.scrollTrigger?.kill()
       tween?.kill()
-      split?.revert()
-    }
-  }, [showPageContent])
-
-  useEffect(() => {
-    if (!showPageContent) return
-
-    const phrase = introPhraseRef.current
-    const number = experienceNumberRef.current
-    if (!phrase || !number) return
-
-    let split: SplitText | null = null
-    let timeline: gsap.core.Timeline | null = null
-    const counter = { value: 0 }
-
-    number.textContent = '00'
-
-    split = SplitText.create(phrase, {
-      type: 'lines',
-      tag: 'span',
-      linesClass: 'intro-phrase-line',
-      aria: 'auto',
-      autoSplit: true,
-      onSplit: (self) => {
-        timeline?.scrollTrigger?.kill()
-        timeline?.kill()
-
-        const activeNumber = phrase.querySelector<HTMLElement>('[data-experience-number]')
-        if (!activeNumber) return
-
-        counter.value = 0
-        activeNumber.textContent = '00'
-
-        gsap.set(self.lines, { x: -25, color: '#ffffff', display: 'block' })
-
-        timeline = gsap.timeline({
-          scrollTrigger: {
-            trigger: phrase,
-            start: 'top 100%',
-            once: true,
-          },
-        })
-
-        timeline
-          .to(self.lines, {
-            x: 0,
-            color: '#111827',
-            duration: 1.35,
-            ease: 'power2.out',
-            stagger: 0.65,
-          })
-          .to(
-            counter,
-            {
-              value: 45,
-              duration: 5,
-              ease: 'power2.out',
-              onUpdate: () => {
-                activeNumber.textContent = String(Math.round(counter.value)).padStart(2, '0')
-              },
-            },
-            '<'
-          )
-
-        return timeline
-      },
-    })
-
-    return () => {
-      timeline?.scrollTrigger?.kill()
-      timeline?.kill()
       split?.revert()
     }
   }, [showPageContent])
@@ -1107,16 +1035,6 @@ export default function Home() {
 
       {showPageContent && <>
 
-      <section className="section-padding bg-gradient-to-b from-gray-50/80 to-white">
-        <div className="container mx-auto px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <p id="introPhrase" ref={introPhraseRef} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-[1.1] tracking-tight text-balance">
-              Mais de{' '}
-              <span ref={experienceNumberRef} data-experience-number className="gradient-text">45</span> anos a resolver problemas de canalização com profissionalismo, transparência e preços justos. Do pequeno reparo à grande remodelação.
-            </p>
-          </div>
-        </div>
-      </section>
       {/* ── Gallery Section ── */}
       <section id="trabalhos" className="section-padding relative overflow-hidden">
         {/* Background */}
@@ -1128,10 +1046,6 @@ export default function Home() {
         <div className="container mx-auto px-6 lg:px-8">
           {/* Section header */}
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-50 border border-brand-100 mb-6">
-              <CameraIcon className="w-4 h-4 text-brand-600" />
-              <span className="text-sm font-medium text-brand-700">Portfólio de Trabalhos</span>
-            </div>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 text-balance">
               Trabalhos <span className="gradient-text">reais</span>, resultados visíveis
             </h2>
@@ -1168,12 +1082,6 @@ export default function Home() {
                       <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
                         <ExpandIcon className="w-4 h-4 text-white" />
                       </div>
-                    </div>
-                  </div>
-                  {/* Corner badge */}
-                  <div className="absolute top-4 left-4">
-                    <div className="px-3 py-1.5 rounded-full bg-brand-600/90 backdrop-blur-sm text-white text-xs font-semibold shadow-lg">
-                      ★ Destaque
                     </div>
                   </div>
                 </button>
@@ -1229,7 +1137,7 @@ export default function Home() {
       </section>
 
       {/* ── Lightbox ── */}
-      {lightboxIndex !== null && (
+      {lightboxIndex !== null && createPortal(
         <div className="lightbox-overlay animate-fade-in" onClick={closeLightbox} role="dialog" aria-modal="true">
           {/* Close button */}
           <button
@@ -1274,7 +1182,8 @@ export default function Home() {
               priority
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── About / Why Us Section ── */}
@@ -1645,7 +1554,7 @@ export default function Home() {
       {/* ── Footer ── */}
       <footer className="bg-gray-900 text-white">
         <div className="container mx-auto px-6 lg:px-8 py-12 md:py-16">
-          <div className="grid md:grid-cols-3 gap-10 mb-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
             {/* Brand */}
             <div>
               <BrandLogo variant="short" className="mb-4" />
@@ -1685,6 +1594,34 @@ export default function Home() {
                 </li>
                 <li className="flex items-center gap-2 text-gray-400 text-sm">
                   <MapPinIcon className="w-4 h-4" /> Évora
+                </li>
+              </ul>
+            </div>
+
+            {/* Developer */}
+            <div>
+              <h4 className="font-semibold text-white mb-4">Desenvolvido por</h4>
+              <p className="text-gray-400 text-sm mb-3">André Gonçalves</p>
+              <ul className="space-y-2.5">
+                <li>
+                  <a
+                    href="https://github.com/andrefsg05"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-gray-400 hover:text-brand-400 transition-colors text-sm"
+                  >
+                    GitHub
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.linkedin.com/in/andre-fs-goncalves/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-gray-400 hover:text-brand-400 transition-colors text-sm"
+                  >
+                    LinkedIn
+                  </a>
                 </li>
               </ul>
             </div>
