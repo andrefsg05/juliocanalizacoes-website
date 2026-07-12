@@ -573,9 +573,9 @@ export default function Home() {
         tween = gsap.to(self.words, {
           xPercent: 0,
           opacity: 1,
-          duration: 0.75,
-          ease: 'power2.inOut',
-          stagger: 0.15,
+          duration: 0.68,
+          ease: 'power1.out',
+          stagger: 0.12,
           scrollTrigger: {
             trigger: phrase,
             start: 'top 75%',
@@ -783,7 +783,7 @@ export default function Home() {
                 compactHeaderActive ? 'header-desktop-view-visible' : 'header-desktop-view-hidden'
               }`}
             >
-              <div className="flex items-center rounded-full border border-white/30 bg-gray-600/97 px-2.5 py-1.5 backdrop-blur-xl shadow-lg shadow-gray-900/10">
+              <div className="flex items-center rounded-full border border-white/30 bg-gray-800/60 px-2.5 py-1.5 backdrop-blur-xl shadow-lg shadow-gray-900/10">
                 <a
                   href="#"
                   tabIndex={compactHeaderActive ? undefined : -1}
