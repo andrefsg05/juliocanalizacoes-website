@@ -273,6 +273,7 @@ const heroTitleKeywords = new Set(['qualidade', 'confiança'])
 
 export default function Home() {
   const headerRef = useRef<HTMLElement | null>(null)
+  const desktopLinksRef = useRef<HTMLDivElement | null>(null)
   const heroTitleRef = useRef<HTMLHeadingElement | null>(null)
   const heroTransitionRef = useRef<HTMLDivElement | null>(null)
   const heroSectionRef = useRef<HTMLElement | null>(null)
@@ -324,6 +325,7 @@ export default function Home() {
   const [showHeroSupportingContent, setShowHeroSupportingContent] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
+  const [showScrolledDesktopLinks, setShowScrolledDesktopLinks] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [quoteForm, setQuoteForm] = useState({
     name: '',
@@ -338,9 +340,6 @@ export default function Home() {
     message: string
     previewUrl?: string
   }>({ type: 'idle', message: '' })
-  const fullHeaderActive = !hasScrolled
-  const compactHeaderActive = hasScrolled
-
   const openLightbox = useCallback((index: number) => {
     setLightboxIndex(index)
     document.body.style.overflow = 'hidden'
@@ -621,9 +620,24 @@ export default function Home() {
   }, [showPageContent])
 
   useEffect(() => {
+    let previousScrollY = window.scrollY
+
     const updateHeaderState = () => {
-      setHasScrolled(window.scrollY > 50)
+      const currentScrollY = window.scrollY
+      const scrolled = currentScrollY > 50
+
+      setHasScrolled(scrolled)
       setMobileMenuOpen(false)
+
+      if (!scrolled) {
+        setShowScrolledDesktopLinks(false)
+      } else if (currentScrollY < previousScrollY) {
+        setShowScrolledDesktopLinks(true)
+      } else if (currentScrollY > previousScrollY) {
+        setShowScrolledDesktopLinks(false)
+      }
+
+      previousScrollY = currentScrollY
     }
 
     updateHeaderState()
@@ -631,6 +645,54 @@ export default function Home() {
 
     return () => window.removeEventListener('scroll', updateHeaderState)
   }, [])
+
+  useEffect(() => {
+    const links = desktopLinksRef.current
+    if (!showPageContent || !links) return
+
+    const glowPosition = {
+      x: links.offsetWidth / 2,
+      y: links.offsetHeight / 2,
+    }
+    const setGlowX = gsap.quickSetter(links, '--glow-x', 'px')
+    const setGlowY = gsap.quickSetter(links, '--glow-y', 'px')
+    const renderGlowPosition = () => {
+      setGlowX(glowPosition.x)
+      setGlowY(glowPosition.y)
+    }
+    const moveGlowX = gsap.quickTo(glowPosition, 'x', {
+      duration: 0.35,
+      ease: 'power3.out',
+      onUpdate: renderGlowPosition,
+    })
+    const moveGlowY = gsap.quickTo(glowPosition, 'y', {
+      duration: 0.35,
+      ease: 'power3.out',
+      onUpdate: renderGlowPosition,
+    })
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const bounds = links.getBoundingClientRect()
+      moveGlowX(event.clientX - bounds.left)
+      moveGlowY(event.clientY - bounds.top)
+    }
+
+    const handlePointerLeave = () => {
+      moveGlowX(links.offsetWidth / 2)
+      moveGlowY(links.offsetHeight / 2)
+    }
+
+    renderGlowPosition()
+    links.addEventListener('pointermove', handlePointerMove)
+    links.addEventListener('pointerleave', handlePointerLeave)
+
+    return () => {
+      links.removeEventListener('pointermove', handlePointerMove)
+      links.removeEventListener('pointerleave', handlePointerLeave)
+      moveGlowX.tween.kill()
+      moveGlowY.tween.kill()
+    }
+  }, [showPageContent])
 
   useEffect(() => {
     if (!mobileMenuOpen) return
@@ -720,7 +782,7 @@ export default function Home() {
             : 'border-transparent bg-transparent shadow-none'
         }`}
       >
-        <nav className="container mx-auto px-6 transition-colors duration-300 lg:px-8">
+        <nav className="mx-auto w-full px-6 transition-colors duration-300 lg:px-8">
           <div className="flex h-16 items-center justify-between transition-colors duration-300 md:hidden lg:h-20">
             <a
               href="#"
@@ -740,66 +802,39 @@ export default function Home() {
             </button>
           </div>
 
-          <div className="header-desktop-shell hidden md:block">
-            <div
-              aria-hidden={!fullHeaderActive}
-              className={`header-desktop-view header-desktop-full ${
-                fullHeaderActive ? 'header-desktop-view-visible' : 'header-desktop-view-hidden'
-              }`}
+          <div className="hidden h-20 items-center justify-between md:flex">
+            <a
+              href="#"
+              aria-label="Júlio Gonçalves Canalizações - início"
+              className="flex min-w-0 items-center"
             >
-              <a
-                href="#"
-                tabIndex={fullHeaderActive ? undefined : -1}
-                className="flex min-w-0 items-center"
-              >
-                <BrandLogo className="gap-2.5" />
-              </a>
+              <BrandLogo variant="desktop" compact={hasScrolled} />
+            </a>
 
-              <div className="flex items-center gap-8">
+            <div className="header-desktop-actions">
+              <div
+                ref={desktopLinksRef}
+                aria-hidden={hasScrolled && !showScrolledDesktopLinks}
+                className={`header-desktop-links ${
+                  hasScrolled && !showScrolledDesktopLinks
+                    ? 'header-desktop-links-hidden'
+                    : 'header-desktop-links-visible'
+                } ${
+                  hasScrolled && showScrolledDesktopLinks
+                    ? 'header-desktop-links-scrolled'
+                    : ''
+                }`}
+              >
                 {navItems.map((item) => (
                   <a
                     key={item}
                     href={`#${item.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}
-                    tabIndex={fullHeaderActive ? undefined : -1}
-                    className="text-[0.95rem] font-medium text-gray-600 hover:text-brand-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-500 after:transition-all after:duration-300 hover:after:w-full"
+                    tabIndex={hasScrolled && !showScrolledDesktopLinks ? -1 : undefined}
+                    className="text-base font-medium text-gray-600 hover:text-brand-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-500 after:transition-all after:duration-300 hover:after:w-full"
                   >
                     {item}
                   </a>
                 ))}
-                <a
-                  href="tel:+351964030969"
-                  tabIndex={fullHeaderActive ? undefined : -1}
-                  className="btn-primary text-sm !px-5 !py-2.5"
-                >
-                  <PhoneIcon className="w-4 h-4" />
-                  Ligar Agora
-                </a>
-              </div>
-            </div>
-
-            <div
-              aria-hidden={!compactHeaderActive}
-              className={`header-desktop-view header-desktop-compact ${
-                compactHeaderActive ? 'header-desktop-view-visible' : 'header-desktop-view-hidden'
-              }`}
-            >
-              <div className="flex items-center rounded-full border border-white/30 bg-gray-800/60 px-2.5 py-1.5 backdrop-blur-xl shadow-lg shadow-gray-900/10">
-                <a
-                  href="#"
-                  tabIndex={compactHeaderActive ? undefined : -1}
-                  className="flex min-w-0 items-center"
-                >
-                  <BrandLogo variant="short" />
-                </a>
-
-                <a
-                  href="tel:+351964030969"
-                  aria-label="Ligar agora"
-                  tabIndex={compactHeaderActive ? undefined : -1}
-                  className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full text-white/85 transition-colors hover:bg-white/15"
-                >
-                  <PhoneIcon className="w-4 h-4" />
-                </a>
               </div>
             </div>
           </div>
@@ -824,10 +859,6 @@ export default function Home() {
                     {item}
                   </a>
                 ))}
-                <a href="tel:+351964030969" className="btn-primary mt-3 text-center">
-                  <PhoneIcon className="w-4 h-4" />
-                  Ligar Agora
-                </a>
               </div>
             </div>
         </nav>
@@ -878,10 +909,10 @@ export default function Home() {
               ref={heroTitleRef}
               className="hero-title-gsap text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-12 text-balance"
             >
-              Canalizações com{' '}
+              <span className="font-[family-name:var(--font-cookie)] text-[1.15em] font-normal">Canalizações com</span>{' '}
               <span className="gradient-text">qualidade</span>{' '}
-              e{' '}
-              <span className="gradient-text">confiança</span>.
+              <span className="font-[family-name:var(--font-cookie)] text-[1.15em] font-normal">e</span>{' '}
+              <span className="gradient-text">confiança</span><span className="font-[family-name:var(--font-cookie)] text-[1.15em] font-normal">.</span>
             </h1>
 
             <div className={showHeroSupportingContent ? 'animate-fade-in-up' : 'invisible pointer-events-none'}>
