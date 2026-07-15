@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Cookie, Inter } from 'next/font/google'
+import { Inter, Kedebideri } from 'next/font/google'
 import './globals.css'
 
 const inter = Inter({ 
@@ -8,11 +8,11 @@ const inter = Inter({
   variable: '--font-inter',
 })
 
-const cookie = Cookie({
-  weight: '400',
+const kedebideri = Kedebideri({
+  weight: ['400', '700'],
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-cookie',
+  variable: '--font-kedebideri',
 })
 
 function getMetadataBase(): URL {
@@ -53,7 +53,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt" className={`${inter.variable} ${cookie.variable}`}>
+    <html lang="pt" className={`${inter.variable} ${kedebideri.variable}`}>
       <body className={`${inter.className} antialiased`}>{children}</body>
     </html>
   )

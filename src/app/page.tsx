@@ -6,7 +6,6 @@ import Image from 'next/image'
 import gsap from 'gsap'
 import { SplitText } from 'gsap/SplitText'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import useEmblaCarousel from 'embla-carousel-react'
 import LoadingScreen from '@/components/LoadingScreen'
 import BrandLogo from '@/components/BrandLogo'
 import SmoothScroll from '@/components/SmoothScroll'
@@ -77,14 +76,6 @@ function EnvelopeIcon({ className = "w-6 h-6" }: { className?: string }) {
   )
 }
 
-function CheckCircleIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )
-}
-
 function StarIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24">
@@ -105,31 +96,6 @@ function XIcon({ className = "w-6 h-6" }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  )
-}
-
-function PipeIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5h4.5m0 0V3h9v4.5m-9 0h9m0 0H21m-3 0v9a3 3 0 01-3 3H9a3 3 0 01-3-3v-9" />
-    </svg>
-  )
-}
-
-function FireIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 003.75-3.75c0-2.697-3.75-5.25-3.75-5.25s-3.75 2.553-3.75 5.25A3.75 3.75 0 0012 18z" />
-    </svg>
-  )
-}
-
-function HomeIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
     </svg>
   )
 }
@@ -206,40 +172,40 @@ const allGalleryPhotos = [...highlightedPhotos, ...masonryPhotos]
 
 const services = [
   {
-    icon: DropletIcon,
     title: 'Reparação de Fugas',
     description: 'Deteção e reparação de fugas de água em canalizações, torneiras, autoclismos e válvulas. Utilizamos equipamento de deteção avançado para minimizar danos.',
     features: ['Deteção não destrutiva', 'Reparação imediata', 'Garantia de serviço'],
+    icon: DropletIcon,
   },
   {
-    icon: PipeIcon,
     title: 'Instalação de Canalizações',
     description: 'Instalação completa de redes de água quente e fria, esgotos domésticos e pluviais. Projetos para construção nova e remodelação.',
     features: ['Tubo multicamada', 'PPR e PEX certificado', 'Cumprimento de normas'],
+    icon: WrenchIcon,
   },
   {
-    icon: HomeIcon,
     title: 'Remodelação de Casas de Banho',
     description: 'Remodelação integral de casas de banho, desde a canalização à instalação de louças sanitárias, bases de duche e banheiras.',
     features: ['Projeto personalizado', 'Instalação de louças', 'Acabamentos premium'],
+    icon: ShieldIcon,
   },
   {
-    icon: FireIcon,
     title: 'Sistemas de Aquecimento',
     description: 'Instalação e manutenção de esquentadores, caldeiras, termoacumuladores e sistemas de aquecimento central.',
     features: ['Eficiência energética', 'Manutenção preventiva', 'Todas as marcas'],
+    icon: ClockIcon,
   },
   {
-    icon: WrenchIcon,
     title: 'Manutenção Preventiva',
     description: 'Planos de manutenção regular para evitar avarias e prolongar a vida útil das suas instalações hidráulicas.',
     features: ['Inspeção completa', 'Relatório detalhado', 'Planos personalizados'],
+    icon: ShieldIcon,
   },
   {
-    icon: ShieldIcon,
     title: 'Desentupimentos',
     description: 'Desentupimento profissional de canos, sifões, sanitas e redes de esgoto com equipamento especializado.',
     features: ['Atendimento rápido', 'Câmara de inspeção', 'Hidrojato de pressão'],
+    icon: WrenchIcon,
   },
 ]
 
@@ -279,47 +245,9 @@ export default function Home() {
   const heroSectionRef = useRef<HTMLElement | null>(null)
   const heroDarkOverlayRef = useRef<HTMLDivElement | null>(null)
   const ServicesSectionRef = useRef<HTMLElement | null>(null)
-  const servicesTitleRevealRef = useRef<HTMLSpanElement | null>(null)
-  const servicesPhraseRef = useRef<HTMLParagraphElement | null>(null)
-  const servicesPhraseTopRef = useRef<HTMLSpanElement | null>(null)
-  const servicesPhraseBottomRef = useRef<HTMLSpanElement | null>(null)
+  const servicesCopyMotionRef = useRef<HTMLDivElement | null>(null)
   const servicesDeckRef = useRef<HTMLDivElement | null>(null)
-  const [servicesCarouselRef, servicesCarouselApi] = useEmblaCarousel({
-    dragFree: true,
-    loop: false,
-    align: 'start',
-    containScroll: 'trimSnaps',
-  })
-  const [canScrollServicesPrev, setCanScrollServicesPrev] = useState(false)
-  const [canScrollServicesNext, setCanScrollServicesNext] = useState(false)
-
-  const updateServicesCarouselButtons = useCallback(() => {
-    if (!servicesCarouselApi) return
-
-    setCanScrollServicesPrev(servicesCarouselApi.canScrollPrev())
-    setCanScrollServicesNext(servicesCarouselApi.canScrollNext())
-  }, [servicesCarouselApi])
-
-  const scrollServicesPrev = useCallback(() => {
-    servicesCarouselApi?.scrollPrev()
-  }, [servicesCarouselApi])
-
-  const scrollServicesNext = useCallback(() => {
-    servicesCarouselApi?.scrollNext()
-  }, [servicesCarouselApi])
-
-  useEffect(() => {
-    if (!servicesCarouselApi) return
-
-    updateServicesCarouselButtons()
-    servicesCarouselApi.on('select', updateServicesCarouselButtons)
-    servicesCarouselApi.on('reInit', updateServicesCarouselButtons)
-
-    return () => {
-      servicesCarouselApi.off('select', updateServicesCarouselButtons)
-      servicesCarouselApi.off('reInit', updateServicesCarouselButtons)
-    }
-  }, [servicesCarouselApi, updateServicesCarouselButtons])
+  const serviceCardRefs = useRef<Array<HTMLElement | null>>([])
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [showPageContent, setShowPageContent] = useState(false)
   const [showHeroSupportingContent, setShowHeroSupportingContent] = useState(false)
@@ -469,16 +397,14 @@ export default function Home() {
     const heroSection = heroSectionRef.current
     const overlay = heroDarkOverlayRef.current
     const servicesSection = ServicesSectionRef.current
-    const servicesTitleReveal = servicesTitleRevealRef.current
-    if (!transition || !heroSection || !overlay || !servicesSection || !servicesTitleReveal) return
+    if (!transition || !heroSection || !overlay || !servicesSection) return
 
     gsap.set(overlay, { opacity: 0 })
-    gsap.set(servicesTitleReveal, { clipPath: 'circle(0% at 50% 50%)' })
 
     const pinTrigger = ScrollTrigger.create({
       trigger: transition,
       start: 'top top',
-      end: () => `+=${servicesSection.offsetHeight}`,
+      end: () => `+=${heroSection.offsetHeight}`,
       pin: heroSection,
       pinSpacing: false,
       anticipatePin: 1,
@@ -496,126 +422,136 @@ export default function Home() {
       },
     })
 
-    const titleRevealTween = gsap.to(servicesTitleReveal, {
-      clipPath: 'circle(120% at 50% 50%)',
-      ease: 'none',
-      scrollTrigger: {
-        trigger: servicesSection,
-        start: 'top bottom',
-        end: 'top top',
-        scrub: true,
-      },
-    })
-
     ScrollTrigger.refresh()
 
     return () => {
       pinTrigger.kill()
       overlayTween.scrollTrigger?.kill()
       overlayTween.kill()
-      titleRevealTween.scrollTrigger?.kill()
-      titleRevealTween.kill()
     }
   }, [showPageContent])
 
   useEffect(() => {
     if (!showPageContent) return
 
-    const phrase = servicesPhraseRef.current
-    const topPhrase = servicesPhraseTopRef.current
-    const bottomPhrase = servicesPhraseBottomRef.current
+    const servicesCopyMotion = servicesCopyMotionRef.current
     const servicesDeck = servicesDeckRef.current
+    if (!servicesCopyMotion || !servicesDeck) return
 
-    if (!phrase || !topPhrase || !bottomPhrase || !servicesDeck) return
+    const getEntranceOffset = () => window.innerWidth >= 1024
+      ? Math.min(window.innerWidth * 0.14, 180)
+      : Math.min(window.innerWidth * 0.1, 48)
 
-    let split: SplitText | null = null
-    let tween: gsap.core.Tween | null = null
-    let separateTimeline: gsap.core.Timeline | null = null
-
-    gsap.set([topPhrase, bottomPhrase], {
-      y: 0,
-      scale: 1,
-      transformOrigin: 'center center',
-    })
-    gsap.set(servicesDeck, {
-      autoAlpha: 0,
-      y: 24,
-    })
-
-    split = SplitText.create(phrase, {
-      type: 'words',
-      tag: 'span',
-      wordsClass: 'services-phrase-word',
-      aria: 'auto',
-      onSplit: (self) => {
-        tween?.scrollTrigger?.kill()
-        tween?.kill()
-        separateTimeline?.kill()
-
-        gsap.set(phrase, { autoAlpha: 1 })
-        gsap.set([topPhrase, bottomPhrase], {
-          y: 0,
-          scale: 1,
-          transformOrigin: 'center center',
-        })
-        gsap.set(servicesDeck, {
-          autoAlpha: 0,
-          y: 24,
-        })
-
-        gsap.set(self.words, {
-          xPercent: 25,
-          opacity: 0,
-          display: 'inline-block',
-        })
-
-        tween = gsap.to(self.words, {
-          xPercent: 0,
-          opacity: 1,
-          duration: 0.68,
-          ease: 'power1.out',
-          stagger: 0.12,
-          scrollTrigger: {
-            trigger: phrase,
-            start: 'top 75%',
-            once: true,
-          },
-          onComplete: () => {
-            separateTimeline = gsap.timeline({
-              delay: 0.3,
-            })
-
-            separateTimeline
-              .to(topPhrase, {
-                y: '-31svh',
-                scale: 0.55,
-                duration: 1.1,
-                ease: 'power3.inOut',
-              }, 0)
-              .to(bottomPhrase, {
-                y: '33svh',
-                scale: 0.55,
-                duration: 1.1,
-                ease: 'power3.inOut',
-              }, 0)
-              .to(servicesDeck, {
-                autoAlpha: 1,
-                y: 0,
-                duration: 0.7,
-                ease: 'power2.out',
-              }, 0.55)
-          },
-        })
-
-        return tween
+    const entranceTimeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: servicesCopyMotion,
+        start: 'top 100%',
+        end: 'top 52%',
+        scrub: 0.7,
+        invalidateOnRefresh: true,
       },
     })
 
+    entranceTimeline
+      .fromTo(
+        servicesCopyMotion,
+        { x: () => -getEntranceOffset() },
+        { x: 0, duration: 1, ease: 'none' },
+        0
+      )
+      .fromTo(
+        servicesDeck,
+        { x: () => getEntranceOffset() },
+        { x: 0, duration: 1, ease: 'none' },
+        0
+      )
+
+    ScrollTrigger.refresh()
+
     return () => {
-      separateTimeline?.kill()
-      tween?.scrollTrigger?.kill()
-      tween?.kill()
-      split?.revert()
+      entranceTimeline.scrollTrigger?.kill()
+      entranceTimeline.kill()
+      gsap.set([servicesCopyMotion, servicesDeck], { clearProps: 'transform' })
+    }
+  }, [showPageContent])
+
+  useEffect(() => {
+    if (!showPageContent) return
+
+    const servicesSection = ServicesSectionRef.current
+    const servicesDeck = servicesDeckRef.current
+    const cards = serviceCardRefs.current.filter(
+      (card): card is HTMLElement => card instanceof HTMLElement
+    )
+    if (!servicesSection || !servicesDeck || cards.length !== services.length) return
+
+    const getStackGap = () => window.innerWidth >= 1024 ? 24 : 14
+    const getCardEntryGap = () => window.innerWidth >= 1024 ? 26 : 18
+    const getQueuedCardGap = () => window.innerWidth >= 1024 ? 56 : 36
+    const getSectionInset = () => window.innerWidth >= 640 ? 48 : 32
+    const getQueuedCardY = () => cards[0].offsetHeight + getCardEntryGap() + getQueuedCardGap()
+
+    gsap.set(cards, {
+      y: (index) => {
+        if (index === 0) return 0
+        if (index === 1) return cards[0].offsetHeight + getCardEntryGap()
+        return getQueuedCardY()
+      },
+      opacity: (index) => index < 2 ? 1 : 0,
+      zIndex: (index) => index + 1,
+    })
+
+    const cardsTimeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: servicesSection,
+        start: () => `top top-=${getSectionInset()}`,
+        end: () => `+=${Math.round(
+          (services.length - 1) * Math.max(window.innerHeight * 0.65, 420)
+        )}`,
+        pin: servicesSection,
+        pinSpacing: true,
+        scrub: 0.8,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+      },
+    })
+
+    const baseTravelDistance = Math.max(
+      cards[0].offsetHeight + getCardEntryGap() - getStackGap(),
+      1
+    )
+
+    cards.slice(1).forEach((card, cardIndex) => {
+      const index = cardIndex + 1
+      const stackY = () => index * getStackGap()
+      const initialY = index === 1
+        ? cards[0].offsetHeight + getCardEntryGap()
+        : getQueuedCardY()
+      const travelDistance = Math.max(initialY - stackY(), 1)
+      const travelDuration = travelDistance / baseTravelDistance
+      const moveStart = cardsTimeline.duration()
+
+      cardsTimeline.to(card, {
+        y: stackY,
+        duration: travelDuration,
+        ease: 'none',
+      })
+
+      if (index > 1) {
+        cardsTimeline.to(card, {
+          opacity: 1,
+          duration: Math.min(travelDuration * 0.18, 0.2),
+          ease: 'none',
+        }, moveStart)
+      }
+    })
+
+    ScrollTrigger.refresh()
+
+    return () => {
+      cardsTimeline.scrollTrigger?.kill()
+      cardsTimeline.kill()
+      gsap.set(cards, { clearProps: 'opacity,transform,zIndex' })
     }
   }, [showPageContent])
 
@@ -909,10 +845,10 @@ export default function Home() {
               ref={heroTitleRef}
               className="hero-title-gsap text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-12 text-balance"
             >
-              <span className="font-[family-name:var(--font-cookie)] text-[1.15em] font-normal">Canalizações com</span>{' '}
+              <span className="font-[family-name:var(--font-inter)] text-[0.85em] font-normal">Canalizações com</span>{' '}
               <span className="gradient-text">qualidade</span>{' '}
-              <span className="font-[family-name:var(--font-cookie)] text-[1.15em] font-normal">e</span>{' '}
-              <span className="gradient-text">confiança</span><span className="font-[family-name:var(--font-cookie)] text-[1.15em] font-normal">.</span>
+              <span className="font-[family-name:var(--font-inter)] text-[0.85em] font-normal">e</span>{' '}
+              <span className="gradient-text">confiança</span><span className="font-[family-name:var(--font-inter)] text-[0.85em] font-normal">.</span>
             </h1>
 
             <div className={showHeroSupportingContent ? 'animate-fade-in-up' : 'invisible pointer-events-none'}>
@@ -942,104 +878,76 @@ export default function Home() {
 
       {showPageContent && (
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[50svh] bg-brand-600"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[50svh] bg-gray-50"
           aria-hidden="true"
         />
       )}
 
       {showPageContent && (
-        <section id="servicos" ref={ServicesSectionRef} className="relative z-30 min-h-[100svh] overflow-hidden rounded-[2rem] bg-brand-600 sm:rounded-[3rem]">
-          <div className="relative z-10 px-8 pt-8 lg:px-10 lg:pt-10">
-            <h2 className="relative inline-block text-4xl font-bold leading-[1.1] tracking-tight text-balance sm:text-5xl md:text-6xl lg:text-7xl">
-              <span className="block text-white/25">Serviços</span>
-              <span
-                ref={servicesTitleRevealRef}
-                className="absolute inset-0 block text-white"
-                style={{ clipPath: 'circle(0% at 50% 50%)' }}
-                aria-hidden="true"
-              >
-                Serviços
-              </span>
-            </h2>
-          </div>
-          <div className="absolute inset-0 z-10 flex items-center justify-center px-8 text-center lg:px-10">
-            <p
-              ref={servicesPhraseRef}
-              className="max-w-5xl text-4xl font-bold leading-[1.1] tracking-tight text-white text-balance sm:text-5xl md:text-6xl lg:text-7xl"
-              style={{ opacity: 0 }}
-            >
-              <span ref={servicesPhraseTopRef} className="inline-block">
-                Do pequeno reparo
-              </span>{' '}
-              <span ref={servicesPhraseBottomRef} className="inline-block">
-                à grande remodelação.
-              </span>
-            </p>
+        <section
+          id="servicos"
+          ref={ServicesSectionRef}
+          className="relative z-30 min-h-[calc(100svh+4rem)] overflow-hidden rounded-[2rem] bg-gray-50 sm:min-h-[calc(100svh+6rem)] sm:rounded-[3rem]"
+          aria-label="Serviços"
+        >
+          <div className="mx-auto grid min-h-[calc(100svh+4rem)] w-full max-w-7xl content-center items-start gap-7 px-6 py-8 sm:min-h-[calc(100svh+6rem)] sm:gap-10 sm:px-8 sm:py-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.75fr)] lg:gap-20 lg:px-10 lg:py-16 xl:px-8">
+            <div className="max-w-2xl font-[family-name:var(--font-kedebideri)] lg:-translate-x-4">
+              <div ref={servicesCopyMotionRef} className="will-change-transform">
+                <h2 className="text-4xl font-bold leading-[0.95] tracking-[-0.035em] text-gray-950 text-balance sm:text-5xl md:text-6xl lg:text-8xl">
+                  O que podemos fazer por si
+                </h2>
+                <p className="mt-4 max-w-xl text-sm font-normal leading-relaxed text-gray-500 sm:mt-6 sm:text-base lg:mt-7 lg:text-xl">
+                  Oferecemos serviços especializados de canalização, pensados para resolver cada necessidade com rigor, rapidez e confiança.
+                </p>
+              </div>
+            </div>
 
             <div
               ref={servicesDeckRef}
-              className="absolute left-1/2 top-1/2 w-[min(560px,calc(100%-3rem))] -translate-x-1/2 -translate-y-1/2 overflow-visible sm:w-[min(760px,calc(100%-4rem))] lg:w-[min(1040px,calc(100%-10rem))]"
-              style={{ opacity: 0 }}
-              aria-label="Serviços disponíveis"
+              className="grid w-full max-w-[460px] justify-self-center pb-[70px] will-change-transform sm:pb-[82px] lg:justify-self-end lg:pb-[124px]"
             >
-              <button
-                type="button"
-                onClick={scrollServicesPrev}
-                disabled={!canScrollServicesPrev}
-                className="absolute left-0 top-1/2 z-20 hidden h-12 w-12 -translate-x-[calc(100%+1rem)] -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/25 bg-white text-brand-600 shadow-xl shadow-black/20 transition hover:-translate-x-[calc(100%+1rem)] hover:scale-105 hover:bg-brand-50 disabled:pointer-events-none disabled:opacity-35 lg:flex"
-                aria-label="Ver serviços anteriores"
-              >
-                <ChevronLeftIcon className="h-6 w-6" />
-              </button>
+              {services.map((service, index) => {
+                const ServiceIcon = service.icon
 
-              <button
-                type="button"
-                onClick={scrollServicesNext}
-                disabled={!canScrollServicesNext}
-                className="absolute right-0 top-1/2 z-20 hidden h-12 w-12 translate-x-[calc(100%+1rem)] -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/25 bg-white text-brand-600 shadow-xl shadow-black/20 transition hover:translate-x-[calc(100%+1rem)] hover:scale-105 hover:bg-brand-50 disabled:pointer-events-none disabled:opacity-35 lg:flex"
-                aria-label="Ver serviços seguintes"
-              >
-                <ChevronRightIcon className="h-6 w-6" />
-              </button>
-
-              <span className="pointer-events-none absolute inset-y-0 left-0 z-10 w-4 bg-gradient-to-r from-brand-600 to-transparent sm:w-6" aria-hidden="true" />
-              <span className="pointer-events-none absolute inset-y-0 right-0 z-10 w-4 bg-gradient-to-l from-brand-600 to-transparent sm:w-6" aria-hidden="true" />
-              <div ref={servicesCarouselRef} className="cursor-grab select-none overflow-hidden active:cursor-grabbing">
-                <div className="flex touch-pan-y gap-4">
-                  {services.map((service, i) => (
-                    <article
-                      key={service.title}
-                      className="min-h-[340px] min-w-0 flex-[0_0_295px] rounded-lg border border-white/20 bg-white p-4 text-left text-gray-900 shadow-2xl shadow-black/25 sm:min-h-[370px] sm:flex-[0_0_380px] sm:p-5 lg:min-h-[420px] lg:flex-[0_0_410px] lg:p-6"
-                    >
-                      <div className="mb-5 flex items-start justify-between gap-5 lg:mb-6 lg:gap-6">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-brand-100 bg-brand-50 lg:h-12 lg:w-12">
-                          <service.icon className="h-5 w-5 text-brand-600 lg:h-6 lg:w-6" />
-                        </div>
-                        <span className="text-sm font-semibold text-brand-600">
-                          {String(i + 1).padStart(2, '0')}
-                        </span>
+                return (
+                  <article
+                    key={service.title}
+                    ref={(card) => {
+                      serviceCardRefs.current[index] = card
+                    }}
+                    className="relative w-full rounded-[1.75rem] border-2 border-gray-200 bg-white p-5 will-change-transform [grid-area:1/1] sm:rounded-[2rem] sm:p-7 lg:p-8"
+                  >
+                    <div className="mb-5 flex items-start justify-between gap-6 sm:mb-7">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-brand-100 sm:h-14 sm:w-14 sm:rounded-2xl">
+                        <ServiceIcon className="h-6 w-6 sm:h-7 sm:w-7" />
                       </div>
+                      <span className="text-xs font-semibold tracking-[0.18em] text-gray-400 sm:text-sm">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                    </div>
 
-                      <h3 className="text-lg font-bold leading-tight text-gray-900 sm:text-xl lg:text-2xl">
-                        {service.title}
-                      </h3>
+                    <h3 className="text-xl font-bold leading-tight text-gray-950 sm:text-2xl lg:text-3xl">
+                      {service.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-relaxed text-gray-500 sm:mt-4 sm:text-base">
+                      {service.description}
+                    </p>
 
-                      <p className="mt-3 text-xs leading-relaxed text-gray-500 sm:text-sm lg:text-base">
-                        {service.description}
-                      </p>
-
-                      <ul className="mt-4 space-y-2 sm:mt-5 sm:space-y-2.5">
-                        {service.features.map((feature) => (
-                          <li key={feature} className="flex items-center gap-2 text-xs text-gray-600 sm:gap-3 sm:text-sm">
-                            <CheckCircleIcon className="h-4 w-4 flex-shrink-0 text-brand-500" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </article>
-                  ))}
-                </div>
-              </div>
+                    <ul className="mt-5 space-y-2 border-t border-gray-100 pt-5 sm:mt-6 sm:space-y-2.5 sm:pt-6">
+                      {service.features.map((feature) => (
+                        <li key={feature} className="flex items-center gap-3 text-sm font-medium text-gray-700 sm:text-base">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600" aria-hidden="true">
+                            <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.25} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 12.5l4 4L19 7" />
+                            </svg>
+                          </span>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </article>
+                )
+              })}
             </div>
           </div>
         </section>
@@ -1049,13 +957,7 @@ export default function Home() {
       {showPageContent && <>
 
       {/* ── Gallery Section ── */}
-      <section id="trabalhos" className="section-padding relative overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full bg-brand-50/40 blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-brand-100/30 blur-3xl" />
-        </div>
-
+      <section id="trabalhos" className="section-padding relative overflow-hidden bg-gray-50">
         <div className="container mx-auto px-6 lg:px-8">
           {/* Section header */}
           <div className="text-center max-w-2xl mx-auto mb-16">
@@ -1200,10 +1102,7 @@ export default function Home() {
       )}
 
       {/* ── About / Why Us Section ── */}
-      <section id="sobre" className="section-padding relative overflow-hidden">
-        {/* Background accent */}
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-brand-50/50 to-transparent -z-10" />
-
+      <section id="sobre" className="section-padding relative overflow-hidden bg-gray-50">
         <div className="container mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left content */}
@@ -1281,7 +1180,7 @@ export default function Home() {
       </section>
 
       {/* ── Process Section ── */}
-      <section className="section-padding bg-gradient-to-b from-brand-50/30 to-white">
+      <section className="section-padding bg-gray-50">
         <div className="container mx-auto px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="inline-block text-sm font-semibold text-brand-600 tracking-wider uppercase mb-3">Como Funciona</span>
@@ -1319,7 +1218,7 @@ export default function Home() {
       </section>
 
       {/* ── Testimonials Section ── */}
-      <section id="testemunhos" className="section-padding">
+      <section id="testemunhos" className="section-padding bg-gray-50">
         <div className="container mx-auto px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="inline-block text-sm font-semibold text-brand-600 tracking-wider uppercase mb-3">Testemunhos</span>
@@ -1357,7 +1256,7 @@ export default function Home() {
       </section>
 
       {/* ── CTA Banner ── */}
-      <section className="py-16 md:py-20">
+      <section className="bg-gray-50 py-16 md:py-20">
         <div className="container mx-auto px-6 lg:px-8">
           <div className="relative rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 p-10 md:p-16 overflow-hidden">
             {/* Decorative circles */}
@@ -1394,7 +1293,7 @@ export default function Home() {
       </section>
 
       {/* ── Contact Section ── */}
-      <section id="contacto" className="section-padding bg-gray-50/80">
+      <section id="contacto" className="section-padding bg-gray-50">
         <div className="container mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16">
             {/* Left: Info */}
