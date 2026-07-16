@@ -11,6 +11,7 @@ import BrandLogo from '@/components/BrandLogo'
 import SmoothScroll from '@/components/SmoothScroll'
 import TapIcon from '@/components/TapIcon'
 import MouseIcon from '@/components/MouseIcon'
+import GalleryCarousel from '@/components/GalleryCarousel'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(SplitText, ScrollTrigger)
@@ -148,7 +149,7 @@ const highlightedPhotos = [
   { src: '/img/wc3.jpeg', alt: 'Remodelação de casa de banho - Projeto 3' },
 ]
 
-const masonryPhotos = [
+const carouselPhotos = [
   { src: '/img/1.jpeg', alt: 'Trabalho de canalização 1' },
   { src: '/img/2.jpeg', alt: 'Trabalho de canalização 2' },
   { src: '/img/3.jpeg', alt: 'Trabalho de canalização 3' },
@@ -166,7 +167,7 @@ const masonryPhotos = [
   { src: '/img/17.jpeg', alt: 'Trabalho de canalização 17' },
 ]
 
-const allGalleryPhotos = [...highlightedPhotos, ...masonryPhotos]
+const allGalleryPhotos = [...highlightedPhotos, ...carouselPhotos]
 
 /* ───────── Data ───────── */
 
@@ -176,38 +177,77 @@ const services = [
     description: 'Deteção e reparação de fugas de água em canalizações, torneiras, autoclismos e válvulas. Utilizamos equipamento de deteção avançado para minimizar danos.',
     features: ['Deteção não destrutiva', 'Reparação imediata', 'Garantia de serviço'],
     icon: DropletIcon,
+    theme: 'default' as const,
   },
   {
     title: 'Instalação de Canalizações',
     description: 'Instalação completa de redes de água quente e fria, esgotos domésticos e pluviais. Projetos para construção nova e remodelação.',
     features: ['Tubo multicamada', 'PPR e PEX certificado', 'Cumprimento de normas'],
     icon: WrenchIcon,
+    theme: 'light' as const,
   },
   {
     title: 'Remodelação de Casas de Banho',
     description: 'Remodelação integral de casas de banho, desde a canalização à instalação de louças sanitárias, bases de duche e banheiras.',
     features: ['Projeto personalizado', 'Instalação de louças', 'Acabamentos premium'],
     icon: ShieldIcon,
+    theme: 'dark' as const,
   },
   {
     title: 'Sistemas de Aquecimento',
     description: 'Instalação e manutenção de esquentadores, caldeiras, termoacumuladores e sistemas de aquecimento central.',
     features: ['Eficiência energética', 'Manutenção preventiva', 'Todas as marcas'],
     icon: ClockIcon,
+    theme: 'default' as const,
   },
   {
     title: 'Manutenção Preventiva',
     description: 'Planos de manutenção regular para evitar avarias e prolongar a vida útil das suas instalações hidráulicas.',
     features: ['Inspeção completa', 'Relatório detalhado', 'Planos personalizados'],
     icon: ShieldIcon,
+    theme: 'light' as const,
   },
   {
     title: 'Desentupimentos',
     description: 'Desentupimento profissional de canos, sifões, sanitas e redes de esgoto com equipamento especializado.',
     features: ['Atendimento rápido', 'Câmara de inspeção', 'Hidrojato de pressão'],
     icon: WrenchIcon,
+    theme: 'dark' as const,
   },
 ]
+
+const serviceCardThemes = {
+  default: {
+    card: 'border-gray-200 bg-white',
+    icon: 'bg-brand-50 text-brand-600 ring-brand-100',
+    number: 'text-gray-400',
+    title: 'text-gray-950',
+    description: 'text-gray-500',
+    features: 'border-gray-100',
+    feature: 'text-gray-700',
+    check: 'bg-brand-50 text-brand-600',
+  },
+  light: {
+    card: 'border-brand-300 bg-brand-200',
+    icon: 'bg-white/70 text-brand-700 ring-brand-200',
+    number: 'text-brand-700/60',
+    title: 'text-gray-950',
+    description: 'text-brand-950/70',
+    features: 'border-brand-300/70',
+    feature: 'text-brand-950/80',
+    check: 'bg-white/70 text-brand-700',
+  },
+  dark: {
+    card: 'border-[#344b70] bg-[#263a5a]',
+    icon: 'bg-white/10 text-brand-100 ring-white/15',
+    number: 'text-brand-200',
+    title: 'text-white',
+    description: 'text-brand-100/80',
+    features: 'border-white/15',
+    feature: 'text-white/90',
+    check: 'bg-white/15 text-white',
+  },
+} as const
 
 const testimonials = [
   {
@@ -248,6 +288,9 @@ export default function Home() {
   const servicesCopyMotionRef = useRef<HTMLDivElement | null>(null)
   const servicesDeckRef = useRef<HTMLDivElement | null>(null)
   const serviceCardRefs = useRef<Array<HTMLElement | null>>([])
+  const galleryTitleRef = useRef<HTMLHeadingElement | null>(null)
+  const galleryDescriptionRef = useRef<HTMLParagraphElement | null>(null)
+  const highlightedPhotoMotionRefs = useRef<Array<HTMLDivElement | null>>([])
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [showPageContent, setShowPageContent] = useState(false)
   const [showHeroSupportingContent, setShowHeroSupportingContent] = useState(false)
@@ -428,6 +471,76 @@ export default function Home() {
       pinTrigger.kill()
       overlayTween.scrollTrigger?.kill()
       overlayTween.kill()
+    }
+  }, [showPageContent])
+
+  useEffect(() => {
+    if (!showPageContent) return
+
+    const galleryTitle = galleryTitleRef.current
+    const galleryDescription = galleryDescriptionRef.current
+    if (!galleryTitle || !galleryDescription) return
+
+    const galleryCopyTween = gsap.fromTo(
+      [galleryTitle, galleryDescription],
+      { autoAlpha: 0, y: 35 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        duration: 1.2,
+        ease: 'power3.out',
+        stagger: 0.15,
+        scrollTrigger: {
+          trigger: galleryTitle,
+          start: 'top 82%',
+          once: true,
+        },
+      }
+    )
+
+    ScrollTrigger.refresh()
+
+    return () => {
+      galleryCopyTween.scrollTrigger?.kill()
+      galleryCopyTween.kill()
+      gsap.set([galleryTitle, galleryDescription], {
+        clearProps: 'opacity,visibility,transform',
+      })
+    }
+  }, [showPageContent])
+
+  useEffect(() => {
+    if (!showPageContent) return
+
+    const motionLayers = highlightedPhotoMotionRefs.current.filter(
+      (layer): layer is HTMLDivElement => layer !== null
+    )
+    if (motionLayers.length === 0) return
+
+    const motionTweens = motionLayers.map((layer) => gsap.fromTo(
+      layer,
+      { y: -40 },
+      {
+        y: 40,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: layer.parentElement,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1.5,
+          invalidateOnRefresh: true,
+        },
+      }
+    ))
+
+    ScrollTrigger.refresh()
+
+    return () => {
+      motionTweens.forEach((tween) => {
+        tween.scrollTrigger?.kill()
+        tween.kill()
+      })
+      gsap.set(motionLayers, { clearProps: 'transform' })
     }
   }, [showPageContent])
 
@@ -908,6 +1021,7 @@ export default function Home() {
             >
               {services.map((service, index) => {
                 const ServiceIcon = service.icon
+                const cardTheme = serviceCardThemes[service.theme]
 
                 return (
                   <article
@@ -915,28 +1029,28 @@ export default function Home() {
                     ref={(card) => {
                       serviceCardRefs.current[index] = card
                     }}
-                    className="relative w-full rounded-[1.75rem] border-2 border-gray-200 bg-white p-5 will-change-transform [grid-area:1/1] sm:rounded-[2rem] sm:p-7 lg:p-8"
+                    className={`relative w-full rounded-[1.75rem] border-2 p-5 will-change-transform [grid-area:1/1] sm:rounded-[2rem] sm:p-7 lg:p-8 ${cardTheme.card}`}
                   >
                     <div className="mb-5 flex items-start justify-between gap-6 sm:mb-7">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-brand-100 sm:h-14 sm:w-14 sm:rounded-2xl">
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-xl ring-1 sm:h-14 sm:w-14 sm:rounded-2xl ${cardTheme.icon}`}>
                         <ServiceIcon className="h-6 w-6 sm:h-7 sm:w-7" />
                       </div>
-                      <span className="text-xs font-semibold tracking-[0.18em] text-gray-400 sm:text-sm">
+                      <span className={`text-xs font-semibold tracking-[0.18em] sm:text-sm ${cardTheme.number}`}>
                         {String(index + 1).padStart(2, '0')}
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-bold leading-tight text-gray-950 sm:text-2xl lg:text-3xl">
+                    <h3 className={`text-xl font-bold leading-tight sm:text-2xl lg:text-3xl ${cardTheme.title}`}>
                       {service.title}
                     </h3>
-                    <p className="mt-3 text-sm leading-relaxed text-gray-500 sm:mt-4 sm:text-base">
+                    <p className={`mt-3 text-sm leading-relaxed sm:mt-4 sm:text-base ${cardTheme.description}`}>
                       {service.description}
                     </p>
 
-                    <ul className="mt-5 space-y-2 border-t border-gray-100 pt-5 sm:mt-6 sm:space-y-2.5 sm:pt-6">
+                    <ul className={`mt-5 space-y-2 border-t pt-5 sm:mt-6 sm:space-y-2.5 sm:pt-6 ${cardTheme.features}`}>
                       {service.features.map((feature) => (
-                        <li key={feature} className="flex items-center gap-3 text-sm font-medium text-gray-700 sm:text-base">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600" aria-hidden="true">
+                        <li key={feature} className={`flex items-center gap-3 text-sm font-medium sm:text-base ${cardTheme.feature}`}>
+                          <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${cardTheme.check}`} aria-hidden="true">
                             <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.25} viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 12.5l4 4L19 7" />
                             </svg>
@@ -957,38 +1071,45 @@ export default function Home() {
       {showPageContent && <>
 
       {/* ── Gallery Section ── */}
-      <section id="trabalhos" className="section-padding relative overflow-hidden bg-gray-50">
+      <section id="trabalhos" className="relative overflow-hidden bg-gray-50 pt-8 pb-20 md:pt-10 md:pb-28 lg:pt-12 lg:pb-32">
         <div className="container mx-auto px-6 lg:px-8">
           {/* Section header */}
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 text-balance">
-              Trabalhos <span className="gradient-text">reais</span>, resultados visíveis
+          <div className="mx-auto mb-16 max-w-8xl text-center">
+            <h2 ref={galleryTitleRef} className="font-[family-name:var(--font-kedebideri)] text-4xl font-bold leading-[0.95] tracking-[-0.035em] text-gray-950 text-balance sm:text-5xl md:text-6xl lg:text-7xl xl:whitespace-nowrap">
+              Veja alguns dos nossos trabalhos
             </h2>
-            <p className="text-gray-500 text-lg">
-              Veja alguns dos nossos trabalhos mais recentes. Cada um reflete o nosso compromisso com a qualidade e atenção ao detalhe.
+            <p ref={galleryDescriptionRef} className="mx-auto mt-4 max-w-xl font-[family-name:var(--font-kedebideri)] text-sm font-normal leading-relaxed text-gray-500 sm:mt-6 sm:text-base lg:mt-7 lg:text-xl">
+              Cada um reflete o nosso compromisso com a qualidade e atenção ao detalhe.
             </p>
           </div>
 
           {/* Highlighted photos - 3 WC projects */}
-          <div className="mb-6 lg:mb-8">
+          <div className="mb-20 lg:mb-28">
             <div className="flex items-center gap-2 mb-6">
               <div className="w-1 h-6 rounded-full bg-gradient-to-b from-brand-500 to-brand-700" />
-              <h3 className="text-lg font-bold text-gray-900">Remodelações de Casa de Banho</h3>
+              <h3 className="text-lg text-gray-500">Remodelações de Casa de Banho</h3>
             </div>
             <div className="grid md:grid-cols-3 gap-4 lg:gap-6">
               {highlightedPhotos.map((photo, i) => (
                 <button
                   key={i}
                   onClick={() => openLightbox(i)}
-                  className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus:ring-4 focus:ring-brand-300 focus:ring-offset-2"
+                  className="group relative aspect-[7/6] rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus:ring-4 focus:ring-brand-300 focus:ring-offset-2"
                 >
-                  <Image
-                    src={photo.src}
-                    alt={photo.alt}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
+                  <div
+                    ref={(element) => {
+                      highlightedPhotoMotionRefs.current[i] = element
+                    }}
+                    className="absolute inset-x-0 -inset-y-3"
+                  >
+                    <Image
+                      src={photo.src}
+                      alt={photo.alt}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover transition-transform duration-600 ease-out group-hover:scale-[1.20]"
+                    />
+                  </div>
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 via-gray-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
                   {/* Bottom text */}
@@ -1004,49 +1125,33 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Masonry grid - remaining photos */}
+          {/* Carousel - remaining photos */}
           <div>
             <div className="flex items-center gap-2 mb-6">
               <div className="w-1 h-6 rounded-full bg-gradient-to-b from-brand-400 to-brand-600" />
-              <h3 className="text-lg font-bold text-gray-900">Mais Trabalhos</h3>
-              <span className="text-sm text-gray-400 ml-1">({masonryPhotos.length} fotos)</span>
+              <h3 className="text-lg text-gray-500">Mais Trabalhos</h3>
             </div>
-            <div className="gallery-masonry">
-              {masonryPhotos.map((photo, i) => (
-                <button
-                  key={i}
-                  onClick={() => openLightbox(highlightedPhotos.length + i)}
-                  className="group relative w-full rounded-xl overflow-hidden cursor-pointer focus:outline-none focus:ring-4 focus:ring-brand-300 focus:ring-offset-2 block"
-                >
-                  <Image
-                    src={photo.src}
-                    alt={photo.alt}
-                    width={600}
-                    height={400}
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-105 group-hover:brightness-90"
-                  />
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
-                  <div className="absolute bottom-0 inset-x-0 p-3 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                    <div className="flex items-center justify-end">
-                      <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                        <ExpandIcon className="w-3.5 h-3.5 text-white" />
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <GalleryCarousel
+              photos={carouselPhotos}
+              onPhotoClick={(index) => openLightbox(highlightedPhotos.length + index)}
+            />
           </div>
+        </div>
+      </section>
 
-          {/* CTA under gallery */}
-          <div className="text-center mt-12 lg:mt-16">
-            <p className="text-gray-500 mb-4">Gostou do que vê? Podemos fazer o mesmo por si.</p>
-            <a href="#contacto" className="btn-primary">
-              Pedir Orçamento Grátis
-              <ArrowRightIcon />
-            </a>
+      {/* ── Statement Marquee ── */}
+      <section
+        className="statement-marquee bg-gray-50"
+        aria-label="Do pequeno reparo à grande remodelação"
+      >
+        <div className="statement-marquee-track" aria-hidden="true">
+          <div className="statement-marquee-group">
+            <span>Do pequeno reparo à grande remodelação</span>
+            <span className="statement-marquee-separator">/</span>
+          </div>
+          <div className="statement-marquee-group">
+            <span>Do pequeno reparo à grande remodelação</span>
+            <span className="statement-marquee-separator">/</span>
           </div>
         </div>
       </section>
