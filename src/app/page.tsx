@@ -9,8 +9,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import LoadingScreen from '@/components/LoadingScreen'
 import BrandLogo from '@/components/BrandLogo'
 import SmoothScroll from '@/components/SmoothScroll'
-import TapIcon from '@/components/TapIcon'
 import MouseIcon from '@/components/MouseIcon'
+import TapIcon from '@/components/TapIcon'
 import GalleryCarousel from '@/components/GalleryCarousel'
 
 if (typeof window !== 'undefined') {
@@ -270,6 +270,25 @@ const testimonials = [
   },
 ]
 
+const processSteps = [
+  {
+    title: 'Contacte-nos',
+    description: 'Ligue ou envie mensagem a descrever o problema. Respondemos rapidamente.',
+  },
+  {
+    title: 'Diagnóstico',
+    description: 'Visitamos o local para avaliar a situação e apresentamos um orçamento detalhado.',
+  },
+  {
+    title: 'Execução',
+    description: 'Realizamos o trabalho com profissionalismo, limpeza e no prazo combinado.',
+  },
+  {
+    title: 'Garantia',
+    description: 'Todos os trabalhos incluem garantia. A sua satisfação é a nossa prioridade.',
+  },
+]
+
 const navItems = ['Serviços', 'Trabalhos', 'Sobre', 'Testemunhos', 'Contacto']
 const HERO_INTRO_DELAY_MS = 1850
 const HERO_SUPPORTING_CONTENT_DELAY_MS = 800
@@ -291,9 +310,19 @@ export default function Home() {
   const galleryTitleRef = useRef<HTMLHeadingElement | null>(null)
   const galleryDescriptionRef = useRef<HTMLParagraphElement | null>(null)
   const highlightedPhotoMotionRefs = useRef<Array<HTMLDivElement | null>>([])
+  const aboutCopyRef = useRef<HTMLParagraphElement | null>(null)
+  const processSectionRef = useRef<HTMLElement | null>(null)
+  const processProgressRef = useRef<HTMLDivElement | null>(null)
+  const processTitleRefs = useRef<Array<HTMLDivElement | null>>([])
+  const processDescriptionRefs = useRef<Array<HTMLParagraphElement | null>>([])
+  const testimonialsStageRef = useRef<HTMLDivElement | null>(null)
+  const testimonialProgressRef = useRef<HTMLDivElement | null>(null)
+  const activeTestimonialIndexRef = useRef(0)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [showPageContent, setShowPageContent] = useState(false)
   const [showHeroSupportingContent, setShowHeroSupportingContent] = useState(false)
+  const [activeProcessStep, setActiveProcessStep] = useState(0)
+  const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
   const [showScrolledDesktopLinks, setShowScrolledDesktopLinks] = useState(false)
@@ -512,6 +541,280 @@ export default function Home() {
   useEffect(() => {
     if (!showPageContent) return
 
+    const phrase = aboutCopyRef.current
+    if (!phrase) return
+
+    let split: SplitText | null = null
+    let cancelled = false
+
+    const createSplit = () => {
+      if (cancelled) return
+
+      split = SplitText.create(phrase, {
+        type: 'lines',
+        mask: 'lines',
+        aria: 'auto',
+        autoSplit: true,
+        onSplit: (self) =>
+          gsap.from(self.lines, {
+            yPercent: 100,
+            duration: 0.9,
+            stagger: 0.12,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: phrase,
+              start: 'top 80%',
+              once: true,
+            },
+          }),
+      })
+    }
+
+    if (document.fonts?.ready) {
+      void document.fonts.ready.then(createSplit)
+    } else {
+      createSplit()
+    }
+
+    return () => {
+      cancelled = true
+      split?.revert()
+    }
+  }, [showPageContent])
+
+  useEffect(() => {
+    if (!showPageContent) return
+
+    const section = processSectionRef.current
+    const progress = processProgressRef.current
+    const titles = processTitleRefs.current.filter(
+      (title): title is HTMLDivElement => title instanceof HTMLDivElement
+    )
+    const descriptions = processDescriptionRefs.current.filter(
+      (description): description is HTMLParagraphElement =>
+        description instanceof HTMLParagraphElement
+    )
+    if (
+      !section ||
+      !progress ||
+      titles.length !== processSteps.length ||
+      descriptions.length !== processSteps.length
+    ) return
+
+    let cancelled = false
+    let media: ReturnType<typeof gsap.matchMedia> | null = null
+
+    const createProcessAnimation = () => {
+      if (cancelled) return
+
+      media = gsap.matchMedia()
+      media.add(
+        {
+          isMobile: '(max-width: 767px)',
+          isDesktop: '(min-width: 768px)',
+        },
+        (context) => {
+          const isMobile = context.conditions?.isMobile === true
+          let lastActiveStep = -1
+
+          const split = SplitText.create(descriptions, {
+            type: 'lines',
+            linesClass: 'process-description-line will-change-transform',
+            mask: 'lines',
+            autoSplit: true,
+            onSplit: () => {
+              const linesByDescription = descriptions.map((description) =>
+                Array.from(
+                  description.querySelectorAll<HTMLElement>('.process-description-line')
+                )
+              )
+              const allLines = linesByDescription.flat()
+              if (allLines.length === 0) return gsap.timeline()
+
+              gsap.set(progress, {
+                scaleX: 0,
+                transformOrigin: 'left center',
+              })
+              gsap.set(descriptions, { visibility: 'visible' })
+              gsap.set(allLines, { yPercent: 120 })
+              gsap.set(linesByDescription[0], { yPercent: 0 })
+
+              if (isMobile) {
+                gsap.set(titles, {
+                  color: '#030712',
+                  scale: 1,
+                  visibility: 'visible',
+                  yPercent: 120,
+                })
+                gsap.set(titles[0], { yPercent: 0 })
+              } else {
+                gsap.set(titles, {
+                  color: '#d1d5db',
+                  scale: 0.96,
+                  visibility: 'visible',
+                  yPercent: 0,
+                  transformOrigin: 'center center',
+                })
+                gsap.set(titles[0], {
+                  color: '#030712',
+                  scale: 1,
+                })
+              }
+
+              const syncActiveStep = (scrollProgress: number) => {
+                const nextStep = Math.min(
+                  processSteps.length - 1,
+                  Math.floor(scrollProgress * processSteps.length)
+                )
+
+                if (nextStep === lastActiveStep) return
+                lastActiveStep = nextStep
+                setActiveProcessStep(nextStep)
+              }
+
+              const timeline = gsap.timeline({
+                scrollTrigger: {
+                  trigger: section,
+                  start: 'top top',
+                  end: () => {
+                    const isNarrowViewport = window.innerWidth < 768
+                    const distancePerStep = Math.max(
+                      window.innerHeight * (isNarrowViewport ? 0.55 : 0.7),
+                      isNarrowViewport ? 320 : 460
+                    )
+
+                    return `+=${Math.round(processSteps.length * distancePerStep)}`
+                  },
+                  pin: section,
+                  pinSpacing: true,
+                  scrub: 0.65,
+                  anticipatePin: 1,
+                  invalidateOnRefresh: true,
+                  onUpdate: (self) => syncActiveStep(self.progress),
+                  onRefresh: (self) => syncActiveStep(self.progress),
+                },
+              })
+
+              timeline.to(
+                progress,
+                {
+                  scaleX: 1,
+                  duration: processSteps.length,
+                  ease: 'none',
+                },
+                0
+              )
+
+              processSteps.slice(1).forEach((_, stepOffset) => {
+                const stepIndex = stepOffset + 1
+                const transitionStart = stepIndex
+                const previousTitle = titles[stepIndex - 1]
+                const nextTitle = titles[stepIndex]
+                const previousLines = linesByDescription[stepIndex - 1]
+                const nextLines = linesByDescription[stepIndex]
+
+                if (isMobile) {
+                  timeline
+                    .to(
+                      previousTitle,
+                      {
+                        yPercent: -120,
+                        duration: 0.24,
+                        ease: 'power2.inOut',
+                      },
+                      transitionStart
+                    )
+                    .fromTo(
+                      nextTitle,
+                      { yPercent: 120 },
+                      {
+                        yPercent: 0,
+                        duration: 0.24,
+                        ease: 'power2.inOut',
+                      },
+                      transitionStart
+                    )
+                } else {
+                  timeline
+                    .to(
+                      previousTitle,
+                      {
+                        color: '#d1d5db',
+                        scale: 0.96,
+                        duration: 0.2,
+                        ease: 'power2.out',
+                      },
+                      transitionStart
+                    )
+                    .to(
+                      nextTitle,
+                      {
+                        color: '#030712',
+                        scale: 1,
+                        duration: 0.22,
+                        ease: 'power2.out',
+                      },
+                      transitionStart
+                    )
+                }
+
+                timeline
+                  .to(
+                    previousLines,
+                    {
+                      yPercent: -120,
+                      duration: 0.24,
+                      stagger: 0.035,
+                      ease: 'power2.inOut',
+                    },
+                    transitionStart
+                  )
+                  .fromTo(
+                    nextLines,
+                    { yPercent: 120 },
+                    {
+                      yPercent: 0,
+                      duration: 0.28,
+                      stagger: 0.035,
+                      ease: 'power2.inOut',
+                    },
+                    transitionStart + 0.03
+                  )
+              })
+
+              return timeline
+            },
+          })
+
+          window.requestAnimationFrame(() => ScrollTrigger.refresh())
+
+          return () => {
+            split.revert()
+            gsap.set(progress, { clearProps: 'transform,transformOrigin' })
+            gsap.set(titles, {
+              clearProps: 'color,transform,transformOrigin,visibility',
+            })
+            gsap.set(descriptions, { clearProps: 'visibility' })
+          }
+        }
+      )
+    }
+
+    if (document.fonts?.ready) {
+      void document.fonts.ready.then(createProcessAnimation)
+    } else {
+      createProcessAnimation()
+    }
+
+    return () => {
+      cancelled = true
+      media?.revert()
+    }
+  }, [showPageContent])
+
+  useEffect(() => {
+    if (!showPageContent) return
+
     const motionLayers = highlightedPhotoMotionRefs.current.filter(
       (layer): layer is HTMLDivElement => layer !== null
     )
@@ -585,6 +888,169 @@ export default function Home() {
       entranceTimeline.scrollTrigger?.kill()
       entranceTimeline.kill()
       gsap.set([servicesCopyMotion, servicesDeck], { clearProps: 'transform' })
+    }
+  }, [showPageContent])
+
+  useEffect(() => {
+    if (!showPageContent) return
+
+    const stage = testimonialsStageRef.current
+    const progress = testimonialProgressRef.current
+    if (!stage || !progress) return
+
+    const items = Array.from(
+      stage.querySelectorAll<HTMLElement>('[data-testimonial-item]')
+    )
+    const quotes = Array.from(
+      stage.querySelectorAll<HTMLElement>('[data-testimonial-quote]')
+    )
+    const stars = Array.from(
+      stage.querySelectorAll<HTMLElement>('[data-testimonial-stars]')
+    )
+    const authors = Array.from(
+      stage.querySelectorAll<HTMLElement>('[data-testimonial-author]')
+    )
+
+    if (
+      items.length !== testimonials.length ||
+      quotes.length !== testimonials.length ||
+      stars.length !== testimonials.length ||
+      authors.length !== testimonials.length
+    ) return
+
+    let cancelled = false
+    let split: SplitText | null = null
+    let loopTimeline: gsap.core.Timeline | null = null
+    let transitionTimeline: gsap.core.Timeline | null = null
+
+    const syncActiveTestimonial = (index: number) => {
+      activeTestimonialIndexRef.current = index
+      setActiveTestimonialIndex(index)
+    }
+
+    const createTestimonialsAnimation = () => {
+      if (cancelled) return
+
+      split = SplitText.create(quotes, {
+        type: 'lines',
+        linesClass: 'testimonial-quote-line will-change-transform',
+        mask: 'lines',
+        autoSplit: true,
+        onSplit: () => {
+          loopTimeline?.kill()
+          transitionTimeline?.kill()
+
+          const linesByQuote = quotes.map((quote) =>
+            Array.from(
+              quote.querySelectorAll<HTMLElement>('.testimonial-quote-line')
+            )
+          )
+          const allLines = linesByQuote.flat()
+          if (
+            allLines.length === 0 ||
+            linesByQuote.some((lines) => lines.length === 0)
+          ) return gsap.timeline()
+
+          const firstIndex = activeTestimonialIndexRef.current
+          gsap.set(items, { visibility: 'hidden' })
+          gsap.set([...stars, ...authors], { opacity: 0 })
+          gsap.set(allLines, { yPercent: 120 })
+          gsap.set(progress, {
+            scaleX: 0,
+            transformOrigin: 'left center',
+          })
+
+          gsap.set(items[firstIndex], { visibility: 'visible' })
+          gsap.set([stars[firstIndex], authors[firstIndex]], { opacity: 1 })
+          gsap.set(linesByQuote[firstIndex], { yPercent: 0 })
+          syncActiveTestimonial(firstIndex)
+
+          const transitionToNextTestimonial = () => {
+            const currentIndex = activeTestimonialIndexRef.current
+            const nextIndex = (currentIndex + 1) % testimonials.length
+
+            transitionTimeline?.kill()
+            transitionTimeline = gsap.timeline()
+
+            transitionTimeline
+              .to(
+                [stars[currentIndex], authors[currentIndex]],
+                {
+                  opacity: 0,
+                  duration: 0.35,
+                  ease: 'power2.inOut',
+                }
+              )
+              .to(
+                linesByQuote[currentIndex],
+                {
+                  yPercent: -120,
+                  duration: 0.45,
+                  stagger: 0.06,
+                  ease: 'power2.in',
+                },
+                '<'
+              )
+              .set(items[currentIndex], { visibility: 'hidden' })
+              .set(items[nextIndex], { visibility: 'visible' })
+              .set(linesByQuote[nextIndex], { yPercent: 120 })
+              .set([stars[nextIndex], authors[nextIndex]], { opacity: 0 })
+              .call(() => syncActiveTestimonial(nextIndex))
+              .to(
+                linesByQuote[nextIndex],
+                {
+                  yPercent: 0,
+                  duration: 0.55,
+                  stagger: 0.07,
+                  ease: 'power3.out',
+                }
+              )
+              .to(
+                [stars[nextIndex], authors[nextIndex]],
+                {
+                  opacity: 1,
+                  duration: 0.45,
+                  ease: 'power2.out',
+                },
+                '<0.08'
+              )
+          }
+
+          const timeline = gsap.timeline({
+            repeat: -1,
+            onRepeat: transitionToNextTestimonial,
+          })
+          loopTimeline = timeline
+
+          timeline.fromTo(
+            progress,
+            { scaleX: 0 },
+            {
+              scaleX: 1,
+              duration: 5.5,
+              ease: 'none',
+            }
+          )
+
+          return timeline
+        },
+      })
+    }
+
+    if (document.fonts?.ready) {
+      void document.fonts.ready.then(createTestimonialsAnimation)
+    } else {
+      createTestimonialsAnimation()
+    }
+
+    return () => {
+      cancelled = true
+      loopTimeline?.kill()
+      transitionTimeline?.kill()
+      split?.revert()
+      gsap.set(items, { clearProps: 'visibility' })
+      gsap.set([...stars, ...authors], { clearProps: 'opacity' })
+      gsap.set(progress, { clearProps: 'transform,transformOrigin' })
     }
   }, [showPageContent])
 
@@ -1003,6 +1469,12 @@ export default function Home() {
           className="relative z-30 min-h-[calc(100svh+4rem)] overflow-hidden rounded-[2rem] bg-gray-50 sm:min-h-[calc(100svh+6rem)] sm:rounded-[3rem]"
           aria-label="Serviços"
         >
+          <div className="absolute inset-x-0 top-12 z-10 mx-auto w-full max-w-7xl translate-y-[7px] px-6 sm:top-14 sm:px-8 lg:top-16 lg:px-10 xl:px-8">
+            <p className="text-center text-sm font-medium tracking-[0.18em] text-gray-400 will-change-transform">
+              SERVIÇOS
+            </p>
+          </div>
+
           <div className="mx-auto grid min-h-[calc(100svh+4rem)] w-full max-w-7xl content-center items-start gap-7 px-6 py-8 sm:min-h-[calc(100svh+6rem)] sm:gap-10 sm:px-8 sm:py-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.75fr)] lg:gap-20 lg:px-10 lg:py-16 xl:px-8">
             <div className="max-w-2xl font-[family-name:var(--font-kedebideri)] lg:-translate-x-4">
               <div ref={servicesCopyMotionRef} className="will-change-transform">
@@ -1206,156 +1678,216 @@ export default function Home() {
         document.body
       )}
 
-      {/* ── About / Why Us Section ── */}
+      {/* ── About Section ── */}
       <section id="sobre" className="section-padding relative overflow-hidden bg-gray-50">
-        <div className="container mx-auto px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Left content */}
-            <div>
-              <span className="inline-block text-sm font-semibold text-brand-600 tracking-wider uppercase mb-3">Sobre Nós</span>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 text-balance">
-                Mais de quatro décadas de experiência ao seu serviço
-              </h2>
-              <p className="text-gray-500 text-lg mb-8 leading-relaxed">
-                A Júlio Gonçalves Canalizações nasceu da paixão por resolver problemas e da
-                dedicação em oferecer um serviço de excelência. Com mais de 45 anos de experiência,
-                somos a referência em canalizações na região de Évora.
-              </p>
+        <div className="absolute inset-x-0 top-6 mx-auto w-full px-6 sm:top-8 sm:px-8">
+          <div className="flex items-center justify-center gap-3 text-sm font-medium tracking-[0.18em] text-gray-400 will-change-transform">
+            <span>EST.</span>
+            <TapIcon className="h-7 w-7 shrink-0" />
+            <span>1978</span>
+          </div>
+        </div>
 
-              <div className="space-y-5">
-                {[
-                  { icon: ShieldIcon, title: 'Garantia em Todos os Trabalhos', desc: 'Todos os nossos serviços incluem garantia. Se algo não ficar perfeito, voltamos sem custos adicionais.' },
-                  { icon: ClockIcon, title: 'Pontualidade e Rapidez', desc: 'Respeitamos o seu tempo. Chegamos à hora marcada e resolvemos o problema com eficiência.' },
-                  { icon: WrenchIcon, title: 'Materiais Certificados', desc: 'Utilizamos apenas materiais de qualidade certificada, garantindo durabilidade e segurança.' },
-                ].map((item, i) => (
-                  <div key={i} className="flex gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center flex-shrink-0">
-                      <item.icon className="w-6 h-6 text-brand-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">{item.title}</h4>
-                      <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
+        <div className="container mx-auto px-6 lg:px-20 xl:px-40">
+          <div className="grid items-center gap-24 md:grid-cols-2 md:gap-50 lg:gap-60 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+            <div className="flex justify-center md:justify-start">
+              <div className="relative aspect-[4/5] w-full max-w-sm overflow-hidden rounded-3xl">
+                <Image
+                  src="/img/canalizador.webp"
+                  alt="Júlio Gonçalves, canalizador profissional"
+                  fill
+                  sizes="(min-width: 768px) 384px, calc(100vw - 3rem)"
+                  className="object-cover"
+                />
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black via-black/75 to-transparent"
+                  aria-hidden="true"
+                />
+                <p className="absolute bottom-6 left-6 font-[family-name:var(--font-carattere)] text-3xl leading-none text-white md:text-4xl">
+                  Júlio Gonçalves
+                </p>
               </div>
             </div>
 
-            {/* Right visual */}
-            <div className="relative">
-              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-100 via-brand-50 to-white p-10 lg:p-14 border border-brand-100">
-                {/* Decorative elements */}
-                <div className="absolute top-6 right-6 w-20 h-20 rounded-full bg-brand-200/30 blur-xl" />
-                <div className="absolute bottom-10 left-6 w-16 h-16 rounded-full bg-brand-300/20 blur-xl" />
-
-                <div className="relative space-y-8">
-                  <div className="text-center">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-brand-500/30">
-                      <TapIcon className="w-10 h-10 text-white" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-1">Júlio Gonçalves</h3>
-                    <p className="text-brand-600 font-medium">Canalizador Profissional</p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100">
-                      <div className="text-3xl font-bold text-brand-600">45+</div>
-                      <div className="text-xs text-gray-500 mt-1">Anos</div>
-                    </div>
-                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100">
-                      <div className="text-3xl font-bold text-brand-600">3500+</div>
-                      <div className="text-xs text-gray-500 mt-1">Clientes</div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-1 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <StarIcon key={i} className="w-4 h-4 text-amber-400" />
-                      ))}
-                      <span className="ml-2 text-sm font-semibold text-gray-700">4.9/5</span>
-                    </div>
-                    <p className="text-sm text-gray-500">Avaliação média baseada em centenas de clientes satisfeitos</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <p
+              ref={aboutCopyRef}
+              className="max-w-2xl text-2xl font-semibold leading-[1.3] [word-spacing:-0.02em] text-gray-900 md:justify-self-end md:text-3xl lg:text-[2.125rem]"
+            >
+              Com mais de quatro décadas de experiência ao seu serviço, a Júlio Gonçalves
+              Canalizações nasceu da paixão por resolver problemas e da dedicação em oferecer um
+              serviço de excelência. Garantimos soluções duradouras e a confiança de quem nos procura.
+            </p>
           </div>
         </div>
       </section>
 
       {/* ── Process Section ── */}
-      <section className="section-padding bg-gray-50">
-        <div className="container mx-auto px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="inline-block text-sm font-semibold text-brand-600 tracking-wider uppercase mb-3">Como Funciona</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Simples, rápido e transparente
-            </h2>
-            <p className="text-gray-500 text-lg">
-              Do primeiro contacto à resolução do problema em 4 passos simples.
-            </p>
-          </div>
+      <section
+        ref={processSectionRef}
+        className="relative flex min-h-[100svh] items-center overflow-hidden bg-gray-50 py-20 md:py-24"
+        aria-labelledby="process-active-title"
+      >
+        <h2 id="process-active-title" className="sr-only">
+          {processSteps[activeProcessStep].title}
+        </h2>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { step: '01', title: 'Contacte-nos', desc: 'Ligue ou envie mensagem a descrever o problema. Respondemos rapidamente.' },
-              { step: '02', title: 'Diagnóstico', desc: 'Visitamos o local para avaliar a situação e apresentamos um orçamento detalhado.' },
-              { step: '03', title: 'Execução', desc: 'Realizamos o trabalho com profissionalismo, limpeza e no prazo combinado.' },
-              { step: '04', title: 'Garantia', desc: 'Todos os trabalhos incluem garantia. A sua satisfação é a nossa prioridade.' },
-            ].map((item, i) => (
-              <div key={i} className="relative group text-center">
-                {/* Connector line on desktop */}
-                {i < 3 && (
-                  <div className="hidden lg:block absolute top-8 left-[60%] w-[80%] h-[2px] bg-gradient-to-r from-brand-200 to-brand-100" />
-                )}
-                <div className="relative z-10">
-                  <div className="w-16 h-16 rounded-2xl bg-white border-2 border-brand-200 flex items-center justify-center mx-auto mb-5 group-hover:border-brand-400 group-hover:bg-brand-50 transition-all duration-300 shadow-sm">
-                    <span className="text-xl font-bold gradient-text">{item.step}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
-                </div>
+        <div className="absolute inset-x-0 top-6 mx-auto w-full px-6 sm:top-8 sm:px-8 lg:px-12 2xl:px-20">
+          <p className="text-center text-sm font-medium tracking-[0.18em] text-gray-400 will-change-transform">
+            A NOSSA FORMA DE TRABALHAR
+          </p>
+        </div>
+
+        <div className="mx-auto w-full px-6 font-[family-name:var(--font-kedebideri)] md:px-8 lg:px-12 2xl:px-20">
+          <div className="grid grid-cols-1 overflow-hidden py-2 md:grid-cols-4 md:gap-5 md:overflow-visible">
+            {processSteps.map((step, index) => (
+              <div
+                key={step.title}
+                ref={(element) => {
+                  processTitleRefs.current[index] = element
+                }}
+                className={`col-start-1 row-start-1 text-center will-change-transform md:col-auto md:row-auto ${
+                  index === 0
+                    ? 'text-gray-950'
+                    : 'invisible text-gray-300 md:visible'
+                }`}
+                data-process-step={index}
+                aria-hidden="true"
+              >
+                <span
+                  className={`mb-3 block text-xl font-bold tracking-[0.18em] text-brand-600 md:mb-4 md:text-2xl ${
+                    activeProcessStep === index ? 'visible' : 'invisible'
+                  }`}
+                >
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <p className="text-[clamp(3.5rem,14vw,5.25rem)] font-bold leading-[0.9] tracking-[-0.055em] md:text-[clamp(2.25rem,3.6vw,4.25rem)]">
+                  {step.title}
+                </p>
               </div>
             ))}
           </div>
+
+          <div
+            className="relative mt-10 h-[3px] w-full bg-gray-400 md:mt-14"
+            role="progressbar"
+            aria-label="Progresso das etapas"
+            aria-valuemin={1}
+            aria-valuemax={processSteps.length}
+            aria-valuenow={activeProcessStep + 1}
+          >
+            <div
+              ref={processProgressRef}
+              className="absolute inset-y-0 left-0 w-full origin-left scale-x-0 bg-brand-600"
+            />
+          </div>
+
+          <div
+            className="mx-auto mt-12 grid max-w-3xl text-center md:mt-16"
+            aria-hidden="true"
+          >
+            {processSteps.map((step, index) => (
+              <p
+                key={step.title}
+                ref={(element) => {
+                  processDescriptionRefs.current[index] = element
+                }}
+                className={`col-start-1 row-start-1 text-[1.375rem] font-medium leading-relaxed text-gray-700 md:text-[1.75rem] md:leading-relaxed ${
+                  index === 0 ? '' : 'invisible'
+                }`}
+              >
+                {step.description}
+              </p>
+            ))}
+          </div>
+
+          <p className="sr-only" aria-live="polite">
+            {processSteps[activeProcessStep].description}
+          </p>
         </div>
       </section>
 
       {/* ── Testimonials Section ── */}
-      <section id="testemunhos" className="section-padding bg-gray-50">
-        <div className="container mx-auto px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="inline-block text-sm font-semibold text-brand-600 tracking-wider uppercase mb-3">Testemunhos</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+      <section id="testemunhos" className="relative min-h-[100svh] bg-gray-50">
+        <div className="absolute inset-x-0 top-6 mx-auto w-full max-w-7xl px-6 sm:top-8 sm:px-8 lg:px-10 xl:px-8">
+          <p className="text-center text-sm font-medium tracking-[0.18em] text-gray-400">
+            TESTEMUNHOS
+          </p>
+        </div>
+
+        <div className="mx-auto grid min-h-[100svh] w-full max-w-7xl content-center items-start gap-10 px-6 py-16 sm:px-8 sm:py-20 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.75fr)] lg:gap-20 lg:px-10 lg:py-24 xl:px-8">
+          <div className="max-w-2xl font-[family-name:var(--font-kedebideri)] lg:-translate-x-4">
+            <h2 className="text-4xl font-bold leading-[0.95] tracking-[-0.035em] text-gray-950 text-balance sm:text-5xl md:text-6xl lg:text-8xl">
               O que dizem os nossos clientes
             </h2>
-            <p className="text-gray-500 text-lg">
+            <p className="mt-4 max-w-xl text-sm font-normal leading-relaxed text-gray-500 sm:mt-6 sm:text-base lg:mt-7 lg:text-xl">
               A confiança dos nossos clientes é o nosso maior orgulho.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-            {testimonials.map((t, i) => (
-              <div key={i} className="bg-white rounded-2xl p-8 border border-gray-100 hover:border-brand-200 hover:shadow-lg hover:shadow-brand-500/5 transition-all duration-500">
-                {/* Stars */}
-                <div className="flex items-center gap-0.5 mb-5">
-                  {[...Array(t.rating)].map((_, j) => (
-                    <StarIcon key={j} className="w-5 h-5 text-amber-400" />
-                  ))}
-                </div>
-                <p className="text-gray-600 leading-relaxed mb-6 italic">&ldquo;{t.text}&rdquo;</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-sm">
-                    {t.name.charAt(0)}
+          <div className="w-full max-w-[460px] justify-self-center lg:justify-self-end">
+            <div ref={testimonialsStageRef} className="grid" aria-hidden="true">
+              {testimonials.map((testimonial, testimonialIndex) => (
+                <article
+                  key={testimonial.name}
+                  data-testimonial-item
+                  className={`grid h-full grid-rows-[auto_1fr_auto] [grid-area:1/1] ${
+                    testimonialIndex === 0 ? '' : 'invisible'
+                  }`}
+                >
+                  <div
+                    data-testimonial-stars
+                    className="mb-7 flex items-center gap-1 sm:mb-9"
+                  >
+                    {Array.from({ length: testimonial.rating }, (_, starIndex) => (
+                      <StarIcon
+                        key={starIndex}
+                        className="h-6 w-6 text-amber-400 sm:h-7 sm:w-7"
+                      />
+                    ))}
                   </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 text-sm">{t.name}</div>
-                    <div className="text-xs text-gray-400">{t.location}</div>
+
+                  <blockquote
+                    data-testimonial-quote
+                    className="text-xl font-medium italic leading-relaxed text-gray-700 sm:text-2xl sm:leading-relaxed"
+                  >
+                    &ldquo;{testimonial.text}&rdquo;
+                  </blockquote>
+
+                  <div
+                    data-testimonial-author
+                    className="mt-8 flex items-center gap-4 border-t border-gray-200 pt-7 sm:mt-10 sm:pt-8"
+                  >
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-600 text-xl font-bold text-white sm:h-16 sm:w-16 sm:text-2xl">
+                      {testimonial.name.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="text-base font-bold text-gray-950 sm:text-lg">
+                        {testimonial.name}
+                      </div>
+                      <div className="mt-0.5 text-sm text-gray-500 sm:text-base">
+                        {testimonial.location}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                </article>
+              ))}
+            </div>
+
+            <div
+              className="relative mt-8 h-[2px] w-full overflow-hidden bg-gray-200 sm:mt-10"
+              aria-hidden="true"
+            >
+              <div
+                ref={testimonialProgressRef}
+                className="absolute inset-0 origin-left scale-x-0 bg-gray-950 will-change-transform"
+              />
+            </div>
+
+            <p className="sr-only" aria-live="polite">
+              {testimonials[activeTestimonialIndex].text} —{' '}
+              {testimonials[activeTestimonialIndex].name},{' '}
+              {testimonials[activeTestimonialIndex].location}
+            </p>
           </div>
         </div>
       </section>

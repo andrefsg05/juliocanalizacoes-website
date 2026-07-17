@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Kedebideri, Stack_Sans_Notch } from 'next/font/google'
+import { Carattere, Inter, Kedebideri, Stack_Sans_Notch } from 'next/font/google'
 import './globals.css'
 
 const inter = Inter({ 
@@ -20,6 +20,13 @@ const stackSansNotch = Stack_Sans_Notch({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-stack-sans-notch',
+})
+
+const carattere = Carattere({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-carattere',
 })
 
 function getMetadataBase(): URL {
@@ -60,7 +67,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt" className={`${inter.variable} ${kedebideri.variable} ${stackSansNotch.variable}`}>
+    <html
+      lang="pt"
+      className={`${inter.variable} ${kedebideri.variable} ${stackSansNotch.variable} ${carattere.variable}`}
+    >
       <body className={`${inter.className} antialiased`}>{children}</body>
     </html>
   )
