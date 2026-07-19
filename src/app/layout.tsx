@@ -1,5 +1,13 @@
 import type { Metadata } from 'next'
-import { Carattere, Inter, Kedebideri, Stack_Sans_Notch } from 'next/font/google'
+import {
+  Carattere,
+  Inter,
+  Kedebideri,
+  Montserrat,
+  Stack_Sans_Notch,
+} from 'next/font/google'
+import LandingIntroProvider from '@/components/LandingIntroProvider'
+import PageTransitionProvider from '@/components/PageTransitionProvider'
 import './globals.css'
 
 const inter = Inter({ 
@@ -27,6 +35,13 @@ const carattere = Carattere({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-carattere',
+})
+
+const montserrat = Montserrat({
+  weight: '700',
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-montserrat',
 })
 
 function getMetadataBase(): URL {
@@ -69,9 +84,13 @@ export default function RootLayout({
   return (
     <html
       lang="pt"
-      className={`${inter.variable} ${kedebideri.variable} ${stackSansNotch.variable} ${carattere.variable}`}
+      className={`${inter.variable} ${kedebideri.variable} ${stackSansNotch.variable} ${carattere.variable} ${montserrat.variable}`}
     >
-      <body className={`${inter.className} antialiased`}>{children}</body>
+      <body className={`${inter.className} antialiased`}>
+        <LandingIntroProvider>
+          <PageTransitionProvider>{children}</PageTransitionProvider>
+        </LandingIntroProvider>
+      </body>
     </html>
   )
 }

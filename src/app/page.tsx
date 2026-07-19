@@ -1,17 +1,21 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import gsap from 'gsap'
 import { SplitText } from 'gsap/SplitText'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import LoadingScreen from '@/components/LoadingScreen'
-import BrandLogo from '@/components/BrandLogo'
 import SmoothScroll from '@/components/SmoothScroll'
 import MouseIcon from '@/components/MouseIcon'
 import TapIcon from '@/components/TapIcon'
 import GalleryCarousel from '@/components/GalleryCarousel'
+import TransitionLink from '@/components/TransitionLink'
+import SiteHeader from '@/components/SiteHeader'
+import SiteFooter from '@/components/SiteFooter'
+import { useLandingIntro } from '@/components/LandingIntroProvider'
+import { usePageTransition } from '@/components/PageTransitionProvider'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(SplitText, ScrollTrigger)
@@ -60,35 +64,10 @@ function PhoneIcon({ className = "w-6 h-6" }: { className?: string }) {
   )
 }
 
-function MapPinIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-    </svg>
-  )
-}
-
-function EnvelopeIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-    </svg>
-  )
-}
-
 function StarIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24">
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
-  )
-}
-
-function MenuIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
     </svg>
   )
 }
@@ -109,10 +88,10 @@ function ArrowRightIcon({ className = "w-4 h-4" }: { className?: string }) {
   )
 }
 
-function ArrowDownRightIcon({ className = "w-4 h-4" }: { className?: string }) {
+function ArrowUpRightIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M7 7l10 10m0 0V8m0 9H8" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 17 17 7m0 0H8m9 0v9" />
     </svg>
   )
 }
@@ -289,17 +268,19 @@ const processSteps = [
   },
 ]
 
-const navItems = ['Serviços', 'Trabalhos', 'Sobre', 'Testemunhos', 'Contacto']
-const HERO_INTRO_DELAY_MS = 1850
-const HERO_SUPPORTING_CONTENT_DELAY_MS = 800
-const heroTitleKeywords = new Set(['qualidade', 'confiança'])
-
 /* ───────── Page Component ───────── */
 
 export default function Home() {
-  const headerRef = useRef<HTMLElement | null>(null)
-  const desktopLinksRef = useRef<HTMLDivElement | null>(null)
+  const { shouldPlayLandingIntro, completeLandingIntro } = useLandingIntro()
+  const { markDestinationReady } = usePageTransition()
+  const [playLandingIntro] = useState(shouldPlayLandingIntro)
+  const headerIntroRef = useRef<HTMLElement | null>(null)
+  const heroBackdropRef = useRef<HTMLDivElement | null>(null)
+  const heroTitleShellRef = useRef<HTMLDivElement | null>(null)
+  const heroTitleGlowRef = useRef<HTMLDivElement | null>(null)
   const heroTitleRef = useRef<HTMLHeadingElement | null>(null)
+  const heroCtaRef = useRef<HTMLDivElement | null>(null)
+  const heroScrollPromptRef = useRef<HTMLDivElement | null>(null)
   const heroTransitionRef = useRef<HTMLDivElement | null>(null)
   const heroSectionRef = useRef<HTMLElement | null>(null)
   const heroDarkOverlayRef = useRef<HTMLDivElement | null>(null)
@@ -318,28 +299,11 @@ export default function Home() {
   const testimonialsStageRef = useRef<HTMLDivElement | null>(null)
   const testimonialProgressRef = useRef<HTMLDivElement | null>(null)
   const activeTestimonialIndexRef = useRef(0)
-  const [isInitialLoading, setIsInitialLoading] = useState(true)
-  const [showPageContent, setShowPageContent] = useState(false)
-  const [showHeroSupportingContent, setShowHeroSupportingContent] = useState(false)
+  const [isInitialLoading, setIsInitialLoading] = useState(playLandingIntro)
   const [activeProcessStep, setActiveProcessStep] = useState(0)
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(0)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [hasScrolled, setHasScrolled] = useState(false)
-  const [showScrolledDesktopLinks, setShowScrolledDesktopLinks] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
-  const [quoteForm, setQuoteForm] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    service: '',
-    message: '',
-    website: '',
-  })
-  const [submitStatus, setSubmitStatus] = useState<{
-    type: 'idle' | 'loading' | 'success' | 'error'
-    message: string
-    previewUrl?: string
-  }>({ type: 'idle', message: '' })
+  const showPageContent = !isInitialLoading
   const openLightbox = useCallback((index: number) => {
     setLightboxIndex(index)
     document.body.style.overflow = 'hidden'
@@ -358,30 +322,196 @@ export default function Home() {
     })
   }, [])
 
+  useEffect(() => {
+    if (window.location.hash === '#contacto') {
+      window.location.replace('/contactar')
+    }
+  }, [])
+
   // Hero slideshow timer
   const [heroSlide, setHeroSlide] = useState(0)
-  useEffect(() => {
-    if (isInitialLoading) return
 
-    let supportingContentTimeout: number | undefined
+  useLayoutEffect(() => {
+    if (!playLandingIntro || isInitialLoading) return
 
-    const contentTimeout = window.setTimeout(() => {
-      setShowPageContent(true)
-      supportingContentTimeout = window.setTimeout(() => {
-        setShowHeroSupportingContent(true)
-      }, HERO_SUPPORTING_CONTENT_DELAY_MS)
-    }, HERO_INTRO_DELAY_MS)
+    const header = headerIntroRef.current
+    const backdrop = heroBackdropRef.current
+    const title = heroTitleRef.current
+    const cta = heroCtaRef.current
+    const scrollPrompt = heroScrollPromptRef.current
+
+    if (!header || !backdrop || !title || !cta || !scrollPrompt) return
+
+    const slideImages = backdrop.querySelectorAll<HTMLImageElement>('.hero-slide img')
+    const secondStage = [header, cta, scrollPrompt]
+    const introTargets = [backdrop, title, ...secondStage]
+    let titleSplit: SplitText | null = null
+    let titleLinesTween: gsap.core.Tween | null = null
+
+    const context = gsap.context(() => {
+      gsap.set([backdrop, ...secondStage], { opacity: 0 })
+      gsap.set(title, { opacity: 1 })
+      gsap.set(slideImages, { animationPlayState: 'paused' })
+
+      const introTimeline = gsap.timeline({
+        paused: true,
+        defaults: {
+          ease: 'power2.out',
+        },
+      })
+
+      titleSplit = SplitText.create(title, {
+        type: 'lines',
+        linesClass: 'hero-title-line will-change-transform',
+        mask: 'lines',
+        aria: 'auto',
+        autoSplit: true,
+        onSplit: (self) => {
+          titleLinesTween = gsap.fromTo(
+            self.lines,
+            {
+              autoAlpha: 0,
+              yPercent: 110,
+            },
+            {
+              autoAlpha: 1,
+              yPercent: 0,
+              duration: 0.9,
+              stagger: 0.12,
+              ease: 'power3.out',
+            }
+          )
+
+          return titleLinesTween
+        },
+      })
+
+      introTimeline
+        .set(slideImages, { animationPlayState: 'running' }, 0)
+        .to(backdrop, {
+          opacity: 1,
+          duration: 1.2,
+          ease: 'sine.inOut',
+        }, 0)
+
+      if (titleLinesTween) {
+        introTimeline.add(titleLinesTween, 0)
+      }
+
+      introTimeline
+        .to(secondStage, {
+          opacity: 1,
+          duration: 0.65,
+        }, '+=0.25')
+        .set(introTargets, { clearProps: 'opacity' })
+        .set(titleSplit.lines, { clearProps: 'opacity,visibility,transform' })
+        .play(0)
+    })
 
     return () => {
-      window.clearTimeout(contentTimeout)
-      if (supportingContentTimeout) window.clearTimeout(supportingContentTimeout)
+      context.revert()
+      titleSplit?.revert()
     }
-  }, [isInitialLoading])
+  }, [isInitialLoading, playLandingIntro])
 
   useEffect(() => {
     if (!showPageContent) return
 
-    setHeroSlide(0)
+    const titleShell = heroTitleShellRef.current
+    const glow = heroTitleGlowRef.current
+    const supportsCursorInteraction = window.matchMedia(
+      '(hover: hover) and (pointer: fine)'
+    ).matches
+
+    if (!titleShell || !glow || !supportsCursorInteraction) return
+
+    const revealDistance = 160
+    let glowIsNearby = false
+
+    const titleBounds = titleShell.getBoundingClientRect()
+    gsap.set(glow, {
+      opacity: 0,
+      '--hero-glow-x': `${titleBounds.width / 2}px`,
+      '--hero-glow-y': `${titleBounds.height / 2}px`,
+    })
+
+    const moveGlowX = gsap.quickTo(glow, '--hero-glow-x', {
+      duration: 0.42,
+      ease: 'power3.out',
+    })
+    const moveGlowY = gsap.quickTo(glow, '--hero-glow-y', {
+      duration: 0.42,
+      ease: 'power3.out',
+    })
+    const revealGlow = gsap.quickTo(glow, 'opacity', {
+      duration: 0.28,
+      ease: 'power2.out',
+    })
+
+    const hideGlow = () => {
+      glowIsNearby = false
+      revealGlow(0)
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const bounds = titleShell.getBoundingClientRect()
+      const distanceX = Math.max(
+        bounds.left - event.clientX,
+        0,
+        event.clientX - bounds.right
+      )
+      const distanceY = Math.max(
+        bounds.top - event.clientY,
+        0,
+        event.clientY - bounds.bottom
+      )
+      const distance = Math.hypot(distanceX, distanceY)
+      const proximity = gsap.utils.clamp(
+        0,
+        1,
+        1 - distance / revealDistance
+      )
+      const localX = event.clientX - bounds.left
+      const localY = event.clientY - bounds.top
+
+      if (proximity === 0) {
+        hideGlow()
+        return
+      }
+
+      if (!glowIsNearby) {
+        gsap.set(glow, {
+          '--hero-glow-x': `${localX}px`,
+          '--hero-glow-y': `${localY}px`,
+        })
+        glowIsNearby = true
+      } else {
+        moveGlowX(localX)
+        moveGlowY(localY)
+      }
+
+      revealGlow(proximity)
+    }
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true })
+    window.addEventListener('blur', hideGlow)
+    document.documentElement.addEventListener('pointerleave', hideGlow)
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('blur', hideGlow)
+      document.documentElement.removeEventListener('pointerleave', hideGlow)
+      gsap.killTweensOf(glow)
+    }
+  }, [showPageContent])
+
+  useEffect(() => {
+    if (playLandingIntro || isInitialLoading) return
+    markDestinationReady()
+  }, [isInitialLoading, markDestinationReady, playLandingIntro])
+
+  useEffect(() => {
+    if (!showPageContent) return
 
     const timer = setInterval(() => {
       setHeroSlide((prev) => (prev + 1) % highlightedPhotos.length)
@@ -389,78 +519,6 @@ export default function Home() {
 
     return () => clearInterval(timer)
   }, [showPageContent])
-
-  useEffect(() => {
-    if (isInitialLoading) return
-
-    const title = heroTitleRef.current
-    if (!title) return
-
-    let split: SplitText | null = null
-    let cancelled = false
-
-    const createSplit = () => {
-      if (cancelled) return
-
-      split = SplitText.create(title, {
-        type: 'lines,words,chars',
-        linesClass: 'hero-title-line',
-        wordsClass: 'hero-title-word',
-        charsClass: 'hero-title-char',
-        aria: 'auto',
-        autoSplit: true,
-        onSplit: (self) => {
-          const timeline = gsap.timeline({
-            defaults: {
-              ease: 'power3.out',
-            },
-          })
-
-          gsap.set(title, { autoAlpha: 1 })
-          gsap.set(self.lines, { y: 34, opacity: 0 })
-          gsap.set(self.chars, { clearProps: 'opacity,transform' })
-
-          self.lines.forEach((line, index) => {
-            const lineStart = index * 0.24
-            const keywordChars = Array.from(line.querySelectorAll<HTMLElement>('.hero-title-word'))
-              .filter((word) => heroTitleKeywords.has((word.textContent || '').trim().toLocaleLowerCase('pt-PT')))
-              .flatMap((word) => Array.from(word.querySelectorAll<HTMLElement>('.hero-title-char')))
-
-            gsap.set(keywordChars, { y: 18, opacity: 0 })
-
-            timeline.to(line, { y: 0, opacity: 1, duration: 1.25 }, lineStart)
-
-            if (keywordChars.length > 0) {
-              timeline.to(
-                keywordChars,
-                {
-                  y: 0,
-                  opacity: 1,
-                  duration: 0.5,
-                  ease: 'power2.out',
-                  stagger: 0.04,
-                },
-                lineStart + 0.12
-              )
-            }
-          })
-
-          return timeline
-        },
-      })
-    }
-
-    if (document.fonts?.ready) {
-      void document.fonts.ready.then(createSplit)
-    } else {
-      createSplit()
-    }
-
-    return () => {
-      cancelled = true
-      split?.revert()
-    }
-  }, [isInitialLoading])
 
   useEffect(() => {
     if (!showPageContent) return
@@ -1135,94 +1193,6 @@ export default function Home() {
   }, [showPageContent])
 
   useEffect(() => {
-    let previousScrollY = window.scrollY
-
-    const updateHeaderState = () => {
-      const currentScrollY = window.scrollY
-      const scrolled = currentScrollY > 50
-
-      setHasScrolled(scrolled)
-      setMobileMenuOpen(false)
-
-      if (!scrolled) {
-        setShowScrolledDesktopLinks(false)
-      } else if (currentScrollY < previousScrollY) {
-        setShowScrolledDesktopLinks(true)
-      } else if (currentScrollY > previousScrollY) {
-        setShowScrolledDesktopLinks(false)
-      }
-
-      previousScrollY = currentScrollY
-    }
-
-    updateHeaderState()
-    window.addEventListener('scroll', updateHeaderState, { passive: true })
-
-    return () => window.removeEventListener('scroll', updateHeaderState)
-  }, [])
-
-  useEffect(() => {
-    const links = desktopLinksRef.current
-    if (!showPageContent || !links) return
-
-    const glowPosition = {
-      x: links.offsetWidth / 2,
-      y: links.offsetHeight / 2,
-    }
-    const setGlowX = gsap.quickSetter(links, '--glow-x', 'px')
-    const setGlowY = gsap.quickSetter(links, '--glow-y', 'px')
-    const renderGlowPosition = () => {
-      setGlowX(glowPosition.x)
-      setGlowY(glowPosition.y)
-    }
-    const moveGlowX = gsap.quickTo(glowPosition, 'x', {
-      duration: 0.35,
-      ease: 'power3.out',
-      onUpdate: renderGlowPosition,
-    })
-    const moveGlowY = gsap.quickTo(glowPosition, 'y', {
-      duration: 0.35,
-      ease: 'power3.out',
-      onUpdate: renderGlowPosition,
-    })
-
-    const handlePointerMove = (event: PointerEvent) => {
-      const bounds = links.getBoundingClientRect()
-      moveGlowX(event.clientX - bounds.left)
-      moveGlowY(event.clientY - bounds.top)
-    }
-
-    const handlePointerLeave = () => {
-      moveGlowX(links.offsetWidth / 2)
-      moveGlowY(links.offsetHeight / 2)
-    }
-
-    renderGlowPosition()
-    links.addEventListener('pointermove', handlePointerMove)
-    links.addEventListener('pointerleave', handlePointerLeave)
-
-    return () => {
-      links.removeEventListener('pointermove', handlePointerMove)
-      links.removeEventListener('pointerleave', handlePointerLeave)
-      moveGlowX.tween.kill()
-      moveGlowY.tween.kill()
-    }
-  }, [showPageContent])
-
-  useEffect(() => {
-    if (!mobileMenuOpen) return
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!headerRef.current?.contains(event.target as Node)) {
-        setMobileMenuOpen(false)
-      }
-    }
-
-    document.addEventListener('pointerdown', handlePointerDown)
-    return () => document.removeEventListener('pointerdown', handlePointerDown)
-  }, [mobileMenuOpen])
-
-  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (lightboxIndex === null) return
       if (e.key === 'Escape') closeLightbox()
@@ -1233,178 +1203,70 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [lightboxIndex, closeLightbox, navigateLightbox])
 
-  const handleQuoteChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = event.target
-    setQuoteForm((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleQuoteSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    setSubmitStatus({ type: 'loading', message: 'A enviar pedido...' })
-
-    try {
-      const response = await fetch('/api/orcamento', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(quoteForm),
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result?.error || 'Não foi possível enviar o pedido neste momento.')
-      }
-
-      setSubmitStatus({
-        type: 'success',
-        message: result?.message || 'Pedido enviado com sucesso. Entraremos em contacto brevemente.',
-        previewUrl: result?.previewUrl,
-      })
-
-      setQuoteForm({
-        name: '',
-        phone: '',
-        email: '',
-        service: '',
-        message: '',
-        website: '',
-      })
-    } catch (error) {
-      setSubmitStatus({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Erro inesperado ao enviar pedido.',
-      })
-    }
-  }
-
   if (isInitialLoading) {
-    return <LoadingScreen onExitComplete={() => setIsInitialLoading(false)} />
+    return (
+      <LoadingScreen
+        onExitComplete={() => {
+          completeLandingIntro()
+          setIsInitialLoading(false)
+        }}
+      />
+    )
   }
 
   return (
     <>
       {/* ── Navbar ── */}
-      {showPageContent && <header
-        ref={headerRef}
-        className={`header-enter absolute inset-x-0 top-0 z-50 border-b transition-all duration-300 ease-out md:fixed ${
-          mobileMenuOpen
-            ? 'border-gray-200 bg-white/95 shadow-lg shadow-gray-900/5 backdrop-blur-md'
-            : 'border-transparent bg-transparent shadow-none'
-        }`}
-      >
-        <nav className="mx-auto w-full px-6 transition-colors duration-300 lg:px-8">
-          <div className="flex h-16 items-center justify-between transition-colors duration-300 md:hidden lg:h-20">
-            <a
-              href="#"
-              className="flex min-w-0 items-center"
-            >
-              <BrandLogo className="gap-2.5" />
-            </a>
-
-            {/* Mobile menu button */}
-            <button
-              className={`rounded-lg p-2 text-gray-600 transition-all duration-300 ${
-                mobileMenuOpen ? 'bg-gray-100 text-gray-900' : 'hover:bg-gray-100'
-              }`}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <XIcon /> : <MenuIcon />}
-            </button>
-          </div>
-
-          <div className="hidden h-20 items-center justify-between md:flex">
-            <a
-              href="#"
-              aria-label="Júlio Gonçalves Canalizações - início"
-              className="flex min-w-0 items-center"
-            >
-              <BrandLogo variant="desktop" compact={hasScrolled} />
-            </a>
-
-            <div className="header-desktop-actions">
-              <div
-                ref={desktopLinksRef}
-                aria-hidden={hasScrolled && !showScrolledDesktopLinks}
-                className={`header-desktop-links ${
-                  hasScrolled && !showScrolledDesktopLinks
-                    ? 'header-desktop-links-hidden'
-                    : 'header-desktop-links-visible'
-                } ${
-                  hasScrolled && showScrolledDesktopLinks
-                    ? 'header-desktop-links-scrolled'
-                    : ''
-                }`}
-              >
-                {navItems.map((item) => (
-                  <a
-                    key={item}
-                    href={`#${item.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}
-                    tabIndex={hasScrolled && !showScrolledDesktopLinks ? -1 : undefined}
-                    className="text-base font-medium text-gray-600 hover:text-brand-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-brand-500 after:transition-all after:duration-300 hover:after:w-full"
-                  >
-                    {item}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Nav */}
-          <div
-            aria-hidden={!mobileMenuOpen}
-            className={`overflow-hidden border-t bg-white transition-all duration-300 ease-out md:hidden ${
-              mobileMenuOpen
-                ? 'max-h-96 border-gray-100 pb-6 pt-2 opacity-100'
-                : 'max-h-0 border-transparent pb-0 pt-0 opacity-0 pointer-events-none'
-            }`}
-          >
-              <div className="flex flex-col gap-1">
-                {navItems.map((item) => (
-                  <a
-                    key={item}
-                    href={`#${item.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="py-3 px-4 text-gray-700 hover:text-brand-600 hover:bg-brand-50 rounded-lg font-medium transition-colors"
-                  >
-                    {item}
-                  </a>
-                ))}
-              </div>
-            </div>
-        </nav>
-      </header>}
+      {showPageContent && (
+        <SiteHeader animateOnMount={false} introRef={headerIntroRef} />
+      )}
 
       <SmoothScroll>
       <div ref={heroTransitionRef} className="relative">
       {/* ── Hero Section ── */}
-      <section ref={heroSectionRef} className="hero-intro relative z-0 flex min-h-[100svh] items-center overflow-hidden bg-white pt-32 pb-20 md:pt-40 md:pb-32 lg:pt-48 lg:pb-40">
-        {/* Background photo slideshow */}
-        {showPageContent && <div className="hero-slideshow" aria-hidden="true">
-          {highlightedPhotos.map((photo, i) => (
-            <div key={i} className={`hero-slide ${i === heroSlide ? 'active' : ''}`}>
-              <Image
-                src={photo.src}
-                alt=""
-                fill
-                sizes="100vw"
-                quality={60}
-                priority={i === 0}
-                className="pointer-events-none select-none"
-              />
+      <section
+        ref={heroSectionRef}
+        className="relative z-0 flex min-h-[100svh] items-center overflow-hidden bg-white pt-32 pb-20 md:pt-40 md:pb-32 lg:pt-48 lg:pb-40"
+      >
+        {showPageContent && (
+          <div
+            ref={heroBackdropRef}
+            className="absolute inset-0 z-0"
+            aria-hidden="true"
+          >
+            {/* Background photo slideshow */}
+            <div className="hero-slideshow">
+              {highlightedPhotos.map((photo, i) => (
+                <div key={i} className={`hero-slide ${i === heroSlide ? 'active' : ''}`}>
+                  <Image
+                    src={photo.src}
+                    alt=""
+                    fill
+                    sizes="100vw"
+                    quality={60}
+                    priority={i === 0}
+                    className="pointer-events-none select-none"
+                  />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>}
 
-        {/* White overlay for text readability */}
-        {showPageContent && <div className="hero-overlay" />}
+            {/* White overlay for text readability */}
+            <div className="hero-overlay" />
+
+            {/* Background decorations (on top of overlay) */}
+            <div className="absolute inset-0 z-[2] pointer-events-none">
+              <div className="absolute top-20 -right-32 w-[500px] h-[500px] rounded-full bg-brand-100/30 blur-3xl" />
+              <div className="absolute -bottom-20 -left-32 w-[400px] h-[400px] rounded-full bg-brand-50/40 blur-3xl" />
+            </div>
+          </div>
+        )}
 
         {showPageContent && (
-          <div className="absolute bottom-6 left-6 z-20 hidden items-center gap-2 text-gray-700 md:left-8 md:flex lg:left-10">
+          <div
+            ref={heroScrollPromptRef}
+            className="absolute bottom-6 left-6 z-20 hidden items-center gap-2 text-white/80 will-change-transform md:left-8 md:flex lg:left-10"
+          >
             <MouseIcon className="h-5 w-5 shrink-0" />
             <span className="text-xs font-semibold uppercase tracking-[0.18em]">
               Scroll to Explore
@@ -1412,36 +1274,35 @@ export default function Home() {
           </div>
         )}
 
-        {/* Background decorations (on top of overlay) */}
-        {showPageContent && <div className="absolute inset-0 z-[2] pointer-events-none">
-          <div className="absolute top-20 -right-32 w-[500px] h-[500px] rounded-full bg-brand-100/30 blur-3xl" />
-          <div className="absolute -bottom-20 -left-32 w-[400px] h-[400px] rounded-full bg-brand-50/40 blur-3xl" />
-        </div>}
-
         <div className="container relative z-10 mx-auto w-full px-6 lg:px-8">
           <div className="max-w-6xl mx-auto text-center">
-            <h1
-              ref={heroTitleRef}
-              className="hero-title-gsap text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-12 text-balance"
+            <div
+              ref={heroTitleShellRef}
+              className="hero-title-shell mb-12 text-balance font-[family-name:var(--font-montserrat)] text-[2.25rem] font-bold leading-[1.1] tracking-[0.04em] text-white/80 sm:text-7xl md:text-8xl lg:text-9xl"
             >
-              <span className="font-[family-name:var(--font-inter)] text-[0.85em] font-normal">Canalizações com</span>{' '}
-              <span className="gradient-text">qualidade</span>{' '}
-              <span className="font-[family-name:var(--font-inter)] text-[0.85em] font-normal">e</span>{' '}
-              <span className="gradient-text">confiança</span><span className="font-[family-name:var(--font-inter)] text-[0.85em] font-normal">.</span>
-            </h1>
+              <div
+                ref={heroTitleGlowRef}
+                className="hero-title-glow"
+                aria-hidden="true"
+              >
+                <div className="hero-title-glow-copy">
+                  J. GONÇALVES CANALIZAÇÕES
+                </div>
+              </div>
 
-            <div className={showHeroSupportingContent ? 'animate-fade-in-up' : 'invisible pointer-events-none'}>
-              <a href="#contacto" className="btn-hero w-full !rounded-full sm:w-auto">
-                <span className="btn-hero-wave" aria-hidden="true">
-                  <span className="btn-hero-wave__layer btn-hero-wave__layer--light" />
-                  <span className="btn-hero-wave__layer btn-hero-wave__layer--mid" />
-                  <span className="btn-hero-wave__layer btn-hero-wave__layer--dark" />
-                </span>
-                <span className="relative z-10 inline-flex items-center gap-2">
-                  Pedir Orçamento Grátis
-                  <ArrowDownRightIcon className="w-5 h-5" />
-                </span>
-              </a>
+              <h1
+                ref={heroTitleRef}
+                className="relative z-[1] will-change-transform"
+              >
+                J. GONÇALVES CANALIZAÇÕES
+              </h1>
+            </div>
+
+            <div ref={heroCtaRef} className="will-change-transform">
+              <TransitionLink href="/contactar" className="hero-cta">
+                Pedir Orçamento Grátis
+                <ArrowUpRightIcon className="h-5 w-5" />
+              </TransitionLink>
             </div>
 
           </div>
@@ -1679,11 +1540,11 @@ export default function Home() {
       )}
 
       {/* ── About Section ── */}
-      <section id="sobre" className="section-padding relative overflow-hidden bg-gray-50">
-        <div className="absolute inset-x-0 top-6 mx-auto w-full px-6 sm:top-8 sm:px-8">
+      <section id="sobre" className="relative overflow-hidden bg-gray-50 pb-28 pt-[8.5rem] sm:pt-32 md:pb-36 md:pt-48 lg:pb-40 lg:pt-56">
+        <div className="absolute inset-x-0 top-20 mx-auto w-full px-6 sm:px-8 md:top-28 lg:top-32">
           <div className="flex items-center justify-center gap-3 text-sm font-medium tracking-[0.18em] text-gray-400 will-change-transform">
             <span>EST.</span>
-            <TapIcon className="h-7 w-7 shrink-0" />
+            <TapIcon className="h-8 w-8 shrink-0" />
             <span>1978</span>
           </div>
         </div>
@@ -1916,276 +1777,21 @@ export default function Home() {
                   <PhoneIcon className="w-5 h-5" />
                   964 030 969
                 </a>
-                <a
-                  href="#contacto"
+                <TransitionLink
+                  href="/contactar"
                   className="inline-flex items-center gap-2 bg-white/10 text-white px-8 py-4 rounded-xl font-semibold border border-white/20 hover:bg-white/20 transition-all duration-300 w-full sm:w-auto justify-center"
                 >
                   Pedir Orçamento
                   <ArrowRightIcon className="w-4 h-4" />
-                </a>
+                </TransitionLink>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Contact Section ── */}
-      <section id="contacto" className="section-padding bg-gray-50">
-        <div className="container mx-auto px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16">
-            {/* Left: Info */}
-            <div>
-              <span className="inline-block text-sm font-semibold text-brand-600 tracking-wider uppercase mb-3">Contacto</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Fale connosco
-              </h2>
-              <p className="text-gray-500 text-lg mb-10">
-                Peça o seu orçamento gratuito e sem compromisso. Estamos disponíveis para si.
-              </p>
-
-              <div className="space-y-6">
-                {[
-                  { icon: PhoneIcon, label: 'Telefone', value: '+351 964 030 969', href: 'tel:+351964030969', sublabel: 'Atendimento no horário de funcionamento' },
-                  { icon: EnvelopeIcon, label: 'Email', value: 'juliogcanalizacoes@gmail.com', href: 'mailto:juliogcanalizacoes@gmail.com', sublabel: 'Resposta o mais breve possível' },
-                  { icon: MapPinIcon, label: 'Zona de Atuação', value: 'Évora e arredores', href: '#', sublabel: 'Atendemos residências e negócios' },
-                ].map((item, i) => (
-                  <a key={i} href={item.href} className="flex items-start gap-4 group p-4 -ml-4 rounded-xl hover:bg-white transition-colors duration-300">
-                    <div className="w-12 h-12 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-100 transition-colors">
-                      <item.icon className="w-5 h-5 text-brand-600" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400 uppercase tracking-wider font-medium">{item.label}</div>
-                      <div className="text-lg font-semibold text-gray-900 group-hover:text-brand-600 transition-colors">{item.value}</div>
-                      <div className="text-sm text-gray-500">{item.sublabel}</div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-
-              {/* Working hours */}
-              <div className="mt-10 p-6 bg-white rounded-2xl border border-gray-100">
-                <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <ClockIcon className="w-5 h-5 text-brand-600" />
-                  Horário de Funcionamento
-                </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Segunda a Sexta</span>
-                    <span className="font-medium text-gray-900">09:00 – 13:00, 14:30 - 17:00</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Sábado e Domingo</span>
-                    <span className="font-medium text-gray-900">Encerrado</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Form */}
-            <div className="bg-white rounded-2xl p-8 md:p-10 border border-gray-100 shadow-sm h-fit">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Pedir Orçamento</h3>
-              <p className="text-gray-500 text-sm mb-8">Preencha o formulário e entraremos em contacto brevemente.</p>
-
-              <form className="space-y-5" onSubmit={handleQuoteSubmit}>
-                <input
-                  type="text"
-                  name="website"
-                  value={quoteForm.website}
-                  onChange={handleQuoteChange}
-                  className="hidden"
-                  tabIndex={-1}
-                  autoComplete="off"
-                  aria-hidden="true"
-                />
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Nome</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={quoteForm.name}
-                      onChange={handleQuoteChange}
-                      placeholder="O seu nome"
-                      required
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all outline-none text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Telefone</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={quoteForm.phone}
-                      onChange={handleQuoteChange}
-                      placeholder="912 345 678"
-                      required
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all outline-none text-sm"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={quoteForm.email}
-                    onChange={handleQuoteChange}
-                    placeholder="email@exemplo.pt"
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all outline-none text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Tipo de Serviço</label>
-                  <select
-                    name="service"
-                    value={quoteForm.service}
-                    onChange={handleQuoteChange}
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all outline-none text-sm bg-white"
-                  >
-                    <option value="">Selecione um serviço</option>
-                    <option>Reparação de Fugas</option>
-                    <option>Instalação de Canalizações</option>
-                    <option>Remodelação de Casa de Banho</option>
-                    <option>Sistemas de Aquecimento</option>
-                    <option>Manutenção Preventiva</option>
-                    <option>Desentupimentos</option>
-                    <option>Outro</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Mensagem</label>
-                  <textarea
-                    rows={4}
-                    name="message"
-                    value={quoteForm.message}
-                    onChange={handleQuoteChange}
-                    placeholder="Descreva o seu problema ou o serviço que precisa..."
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all outline-none resize-none text-sm"
-                  />
-                </div>
-                <button type="submit" disabled={submitStatus.type === 'loading'} className="btn-primary w-full disabled:opacity-70 disabled:cursor-not-allowed">
-                  {submitStatus.type === 'loading' ? 'A enviar...' : 'Enviar Pedido de Orçamento'}
-                  <ArrowRightIcon />
-                </button>
-                {submitStatus.type !== 'idle' && (
-                  <div className={`rounded-xl px-4 py-3 text-sm ${
-                    submitStatus.type === 'success'
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                      : submitStatus.type === 'error'
-                        ? 'bg-red-50 text-red-700 border border-red-100'
-                        : 'bg-brand-50 text-brand-700 border border-brand-100'
-                  }`}>
-                    <p>{submitStatus.message}</p>
-                    {submitStatus.previewUrl && (
-                      <a
-                        href={submitStatus.previewUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-2 inline-block underline font-medium"
-                      >
-                        Ver pré-visualização do email (modo local)
-                      </a>
-                    )}
-                  </div>
-                )}
-                <p className="text-xs text-gray-400 text-center">
-                  Orçamento gratuito e sem compromisso. Resposta o mais breve possível.
-                </p>
-              </form>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="bg-gray-900 text-white">
-        <div className="container mx-auto px-6 lg:px-8 py-12 md:py-16">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-            {/* Brand */}
-            <div>
-              <BrandLogo variant="short" className="mb-4" />
-              <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-                Serviços profissionais de canalização em Évora e arredores.
-                Qualidade, confiança e preços justos há mais de 45 anos.
-              </p>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 className="font-semibold text-white mb-4">Serviços</h4>
-              <ul className="space-y-2.5">
-                {['Reparação de Fugas', 'Instalação de Canalizações', 'Remodelação de Casas de Banho', 'Sistemas de Aquecimento', 'Desentupimentos'].map((item) => (
-                  <li key={item}>
-                    <a href="#servicos" className="text-gray-400 hover:text-brand-400 transition-colors text-sm">
-                      {item}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Contact Info */}
-            <div>
-              <h4 className="font-semibold text-white mb-4">Contacto</h4>
-              <ul className="space-y-3">
-                <li>
-                  <a href="tel:+351964030969" className="flex items-center gap-2 text-gray-400 hover:text-brand-400 transition-colors text-sm">
-                    <PhoneIcon className="w-4 h-4" /> +351 964 030 969
-                  </a>
-                </li>
-                <li>
-                  <a href="mailto:juliogcanalizacoes@gmail.com" className="flex items-center gap-2 text-gray-400 hover:text-brand-400 transition-colors text-sm">
-                    <EnvelopeIcon className="w-4 h-4" /> juliogcanalizacoes@gmail.com
-                  </a>
-                </li>
-                <li className="flex items-center gap-2 text-gray-400 text-sm">
-                  <MapPinIcon className="w-4 h-4" /> Évora
-                </li>
-              </ul>
-            </div>
-
-            {/* Developer */}
-            <div>
-              <h4 className="font-semibold text-white mb-4">Desenvolvido por</h4>
-              <p className="text-gray-400 text-sm mb-3">André Gonçalves</p>
-              <ul className="space-y-2.5">
-                <li>
-                  <a
-                    href="https://github.com/andrefsg05"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-gray-400 hover:text-brand-400 transition-colors text-sm"
-                  >
-                    GitHub
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://www.linkedin.com/in/andre-fs-goncalves/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-gray-400 hover:text-brand-400 transition-colors text-sm"
-                  >
-                    LinkedIn
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-gray-500 text-sm">
-              &copy; {new Date().getFullYear()} Júlio Gonçalves Canalizações. Todos os direitos reservados.
-            </p>
-            <p className="text-gray-600 text-xs">
-              Canalizador certificado &bull; NIF: 124 588 816
-            </p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
       </>}
       </SmoothScroll>
     </>

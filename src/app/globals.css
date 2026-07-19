@@ -30,51 +30,25 @@
     @apply py-20 md:py-28 lg:py-32;
   }
 
-  .btn-hero {
-    @apply relative isolate inline-flex items-center justify-center overflow-hidden bg-gray-900/60 text-white px-7 py-3.5 rounded-xl font-semibold;
+  .hero-cta {
+    @apply relative inline-flex items-center gap-2 pb-1.5 font-semibold text-white;
   }
 
-  .btn-hero-wave {
+  .hero-cta::after {
+    content: '';
     position: absolute;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(1);
+    transform-origin: right;
+    transition: transform 350ms ease;
   }
 
-  .btn-hero-wave__layer {
-    position: absolute;
-    bottom: -185%;
-    left: -20%;
-    width: 140%;
-    height: 180%;
-    border-radius: 48% 52% 0 0 / 18% 22% 0 0;
-    transform: translateY(0) rotate(0deg);
-    transition: transform 1050ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .btn-hero-wave__layer--light {
-    background: #60a5fa;
-  }
-
-  .btn-hero-wave__layer--mid {
-    background: #2563eb;
-  }
-
-  .btn-hero-wave__layer--dark {
-    background: #1f2937;
-  }
-
-  .btn-hero:hover .btn-hero-wave__layer {
-    transform: translateY(-100%) rotate(-2deg);
-  }
-
-  .btn-hero:hover .btn-hero-wave__layer--mid {
-    transition-delay: 90ms;
-  }
-
-  .btn-hero:hover .btn-hero-wave__layer--dark {
-    transition-delay: 180ms;
+  .hero-cta:hover::after {
+    transform: scaleX(0);
   }
 
   .btn-primary {
@@ -143,141 +117,24 @@
 
   .brand-logo-desktop {
     @apply flex items-center gap-2.5;
-    --brand-logo-transition-duration: 350ms;
-    transition: gap var(--brand-logo-transition-duration) cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .brand-logo-desktop-tap {
     @apply relative h-11 w-11 shrink-0 text-brand-600 lg:h-12 lg:w-12;
-    transition:
-      width var(--brand-logo-transition-duration) cubic-bezier(0.22, 1, 0.36, 1),
-      height var(--brand-logo-transition-duration) cubic-bezier(0.22, 1, 0.36, 1),
-      transform var(--brand-logo-transition-duration) cubic-bezier(0.22, 1, 0.36, 1);
-    transform-origin: left center;
-    will-change: width, height, transform;
   }
 
   .brand-logo-desktop-copy {
     @apply relative overflow-hidden whitespace-nowrap;
     width: 9.25rem;
     height: 2.25rem;
-    transition: width var(--brand-logo-transition-duration) cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: width;
   }
 
   .brand-logo-desktop-full-text {
     @apply absolute inset-y-0 left-0 flex flex-col justify-center;
-    transition: opacity 180ms ease;
+    will-change: clip-path;
   }
 
-  .brand-logo-desktop-full .brand-logo-desktop-full-text {
-    opacity: 1;
-    transition-delay: 120ms;
-  }
-
-  .brand-logo-desktop-compact .brand-logo-desktop-tap {
-    @apply h-10 w-10;
-    transform: scale(0.96);
-  }
-
-  .brand-logo-desktop-compact {
-    gap: 0;
-  }
-
-  .brand-logo-desktop-compact .brand-logo-desktop-copy {
-    width: 0;
-  }
-
-  .brand-logo-desktop-compact .brand-logo-desktop-full-text {
-    opacity: 0;
-    transition-delay: 0ms;
-  }
-
-  .header-desktop-actions {
-    @apply relative flex items-center;
-    --header-desktop-opacity-duration: 260ms;
-  }
-
-  .header-desktop-links {
-    @apply flex items-center gap-8;
-    position: relative;
-    isolation: isolate;
-    --glow-x: 50%;
-    --glow-y: 50%;
-    transition: opacity var(--header-desktop-opacity-duration) ease;
-    will-change: opacity;
-  }
-
-  .header-desktop-links::before {
-    content: '';
-    position: absolute;
-    inset: -1rem -1.5rem -1rem -1.5rem;
-    z-index: -1;
-    border-radius: 1.25rem 0 0 1.25rem;
-    background:
-      radial-gradient(
-        circle 5.5rem at calc(var(--glow-x) + 1.5rem) calc(var(--glow-y) + 1rem),
-        rgb(240 249 255 / 82%) 0%,
-        rgb(186 230 253 / 52%) 38%,
-        transparent 72%
-      ),
-      radial-gradient(
-        circle 10rem at calc(var(--glow-x) + 1.5rem) calc(var(--glow-y) + 1rem),
-        rgb(125 211 252 / 26%) 0%,
-        transparent 72%
-      ),
-      rgb(255 255 255 / 75%);
-    opacity: 0;
-    transition: opacity 300ms ease;
-  }
-
-  .header-desktop-links:hover::before {
-    opacity: 1;
-  }
-
-  .header-desktop-links-scrolled::before {
-    opacity: 1;
-  }
-
-  @media (min-width: 64rem) {
-    .header-desktop-links::before {
-      right: -2rem;
-    }
-  }
-
-  .header-desktop-links-visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .header-desktop-links-hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .hero-title-gsap {
-    opacity: 0;
-  }
-
-  .hero-title-line {
-    will-change: transform, opacity;
-  }
-
-  .hero-title-word,
-  .hero-title-char {
-    display: inline-block;
-  }
-
-  .gradient-text .hero-title-word,
-  .gradient-text .hero-title-char {
-    background: inherit;
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-  }
-
-  .hero-title-char {
-    will-change: transform, opacity;
-  }
 }
 
 @layer utilities {
@@ -473,20 +330,6 @@
   overflow: hidden;
 }
 
-.hero-intro .hero-slideshow {
-  animation: heroBackdropEnter 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.hero-intro .hero-slideshow::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: #fff;
-  animation: heroBackdropVeil 1350ms ease-out both;
-  pointer-events: none;
-}
-
 .hero-slide {
   position: absolute;
   inset: 0;
@@ -503,7 +346,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: blur(1px) saturate(0.88) brightness(0.99);
+  filter: none;
   animation: kenBurns 14s ease-in-out infinite alternate;
 }
 
@@ -523,11 +366,80 @@
   z-index: 1;
   background:
     linear-gradient(180deg,
-      rgba(255,255,255,0.83) 0%,
-      rgba(255,255,255,0.73) 30%,
-      rgba(255,255,255,0.63) 55%,
-      rgba(255,255,255,0.77) 100%
+      rgba(8, 15, 28, 0.18) 0%,
+      rgba(8, 15, 28, 0.24) 48%,
+      rgba(8, 15, 28, 0.32) 100%
     );
+}
+
+/* Cursor-reactive glow around the hero title */
+.hero-title-shell {
+  position: relative;
+  cursor: default;
+}
+
+.hero-title-glow {
+  --hero-glow-x: 50%;
+  --hero-glow-y: 50%;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.hero-title-glow-copy {
+  --hero-title-glow-radius: 8.5rem;
+  --hero-title-glow-core: 2.5rem;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle var(--hero-title-glow-core) at var(--hero-glow-x) var(--hero-glow-y),
+      #eff6ff 0%,
+      #bfdbfe 30%,
+      rgba(96, 165, 250, 0.68) 62%,
+      transparent 100%
+    ),
+    radial-gradient(
+      circle var(--hero-title-glow-radius) at var(--hero-glow-x) var(--hero-glow-y),
+      #93c5fd 0%,
+      #60a5fa 24%,
+      #3b82f6 52%,
+      rgba(37, 99, 235, 0.48) 76%,
+      transparent 100%
+    );
+  background-blend-mode: screen;
+  background-clip: text;
+  color: transparent;
+  filter: brightness(1.08) saturate(1.12);
+  text-shadow: none;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-mask-image: radial-gradient(
+    circle var(--hero-title-glow-radius) at var(--hero-glow-x) var(--hero-glow-y),
+    #000 0%,
+    #000 48%,
+    rgba(0, 0, 0, 0.82) 68%,
+    rgba(0, 0, 0, 0.28) 86%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--hero-title-glow-radius) at var(--hero-glow-x) var(--hero-glow-y),
+    #000 0%,
+    #000 48%,
+    rgba(0, 0, 0, 0.82) 68%,
+    rgba(0, 0, 0, 0.28) 86%,
+    transparent 100%
+  );
+}
+
+@media (max-width: 639px) {
+  .hero-title-glow-copy {
+    --hero-title-glow-radius: 6rem;
+    --hero-title-glow-core: 1.75rem;
+  }
 }
 
 /* Water drop decoration */
@@ -551,26 +463,6 @@
   50% { transform: translateY(8px); opacity: 0.6; }
 }
 
-@keyframes heroBackdropEnter {
-  0% {
-    opacity: 0;
-    transform: scale(1.035);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes heroBackdropVeil {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
 /* Hide native scrollbar while preserving scroll behavior */
 html {
   scrollbar-width: none;
@@ -580,4 +472,9 @@ html {
 ::-webkit-scrollbar {
   width: 0;
   height: 0;
+}
+
+.page-transition-layer {
+  visibility: hidden;
+  will-change: transform;
 }

@@ -2,14 +2,12 @@ import TapIcon from './TapIcon'
 
 type BrandLogoProps = {
   variant?: 'header' | 'desktop' | 'loading' | 'short'
-  compact?: boolean
   className?: string
   textClassName?: string
 }
 
 export default function BrandLogo({
   variant = 'header',
-  compact = false,
   className = '',
   textClassName = '',
 }: BrandLogoProps) {
@@ -50,17 +48,13 @@ export default function BrandLogo({
 
   if (variant === 'desktop') {
     return (
-      <div
-        className={`brand-logo-desktop ${
-          compact ? 'brand-logo-desktop-compact' : 'brand-logo-desktop-full'
-        } ${className}`.trim()}
-      >
+      <div className={`brand-logo-desktop ${className}`.trim()}>
         <div className="brand-logo-desktop-tap">
           <TapIcon className="h-full w-full" />
         </div>
 
         <div className={`brand-logo-desktop-copy ${textClassName}`.trim()}>
-          <div className="brand-logo-desktop-full-text" aria-hidden={compact}>
+          <div className="brand-logo-desktop-full-text" aria-hidden="true">
             <span className="block text-lg font-bold leading-none text-gray-950">
               Júlio Gonçalves
             </span>
