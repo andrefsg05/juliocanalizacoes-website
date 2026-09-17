@@ -4,16 +4,6 @@ A production-ready institutional website built for a Portuguese plumbing busines
 
 ---
 
-## Highlights
-
-- **GSAP-driven animations** — cinematic hero intro with SplitText line reveals, scroll-triggered entrance animations across all sections, and a custom cursor glow effect that tracks the pointer near the hero title
-- **Animated page transitions** — full-screen overlay transition between pages with a custom SVG tap icon reveal, coordinated with Next.js App Router navigation
-- **Interactive photo gallery** — Embla Carousel with wheel gesture support, GSAP-powered scale/opacity depth effect on scroll, and a fullscreen lightbox with keyboard navigation
-- **Quote request form** — async form with server-side validation, HTML-escaped email delivery via Nodemailer (SMTP), honeypot field, IP-based rate limiting, and content-type enforcement
-- **Production hardening** — security headers (`X-Frame-Options`, `HSTS`, `Permissions-Policy`, etc.), `poweredByHeader: false`, `reactStrictMode`, and SEO metadata with OpenGraph and canonical URLs
-
----
-
 ## Tech Stack
 
 | Layer | Technology |
@@ -23,7 +13,7 @@ A production-ready institutional website built for a Portuguese plumbing busines
 | Styling | Tailwind CSS v4 |
 | Animation | GSAP (SplitText, ScrollTrigger) |
 | Carousel | Embla Carousel + Wheel Gestures |
-| Email | Nodemailer (SMTP / Ethereal fallback in dev) |
+| Email | Nodemailer (SMTP) |
 | Deployment | Vercel |
 
 ---
@@ -33,11 +23,11 @@ A production-ready institutional website built for a Portuguese plumbing busines
 ```
 src/
 ├── app/
-│   ├── page.tsx              # Main landing page (hero, services, gallery, testimonials, process)
+│   ├── page.tsx              # Main landing page
 │   ├── contactar/            # Dedicated contact & quote request page
 │   ├── api/orcamento/        # POST route — form handling, validation, email dispatch
 │   ├── layout.tsx            # Root layout with metadata, fonts, providers
-│   └── globals.css           # Global styles and design tokens
+│   └── globals.css           # Global styles
 └── components/
     ├── PageTransitionProvider.tsx   # GSAP page transition system
     ├── LandingIntroProvider.tsx     # One-shot landing intro state
@@ -46,18 +36,6 @@ src/
     ├── SiteHeader.tsx               # Responsive navigation
     └── SiteFooter.tsx               # Footer
 ```
-
----
-
-## Running Locally
-
-```bash
-npm install
-cp .env.example .env.local   # configure SMTP or leave blank for Ethereal dev mode
-npm run dev
-```
-
-In development, if SMTP credentials are not set, Nodemailer automatically falls back to [Ethereal](https://ethereal.email/) — a preview URL for the sent email is returned in the API response.
 
 ---
 
