@@ -4,7 +4,7 @@ A production-ready institutional website built for a Portuguese plumbing busines
 
 ---
 
-## 🎬 Showcase
+## Showcase
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/andrefsg05/showcasing-assets/main/intro-jgcwebsite.gif" width="30%" />
