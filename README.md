@@ -8,8 +8,8 @@ A production-ready institutional website built for a Portuguese plumbing busines
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/andrefsg05/showcasing-assets/main/intro-jgcwebsite.gif" width="30%" />
-  <img src="https://raw.githubusercontent.com/andrefsg05/showcasing-assets/main/exploring-jgcwebsite" width="30%" />
-  <img src="https://raw.githubusercontent.com/andrefsg05/showcasing-assets/main/transition-jgcwebsite" width="30%" />
+  <img src="https://raw.githubusercontent.com/andrefsg05/showcasing-assets/main/exploring-jgcwebsite.gif" width="30%" />
+  <img src="https://raw.githubusercontent.com/andrefsg05/showcasing-assets/main/transition-jgcwebsite.gif" width="30%" />
 </div>
 
 ---
