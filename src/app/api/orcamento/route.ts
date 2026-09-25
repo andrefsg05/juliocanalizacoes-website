@@ -147,7 +147,7 @@ function buildAutoReplyHtmlBody(data: Required<Omit<QuotePayload, 'website'>>) {
       <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 28px 24px; text-align: center;">
         <div style="display: inline-block;">
           <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Júlio Gonçalves</h1>
-          <p style="margin: 4px 0 0 0; color: #bae6fd; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 2.5px;">Canalizações</p>
+          <p style="margin: 4px 0 0 0; color: #bae6fd; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 2.5px;">Canalizações com confiança</p>
         </div>
       </div>
 
