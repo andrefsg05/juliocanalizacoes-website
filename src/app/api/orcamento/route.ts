@@ -117,10 +117,6 @@ function buildAutoReplyTextBody(data: Required<Omit<QuotePayload, 'website'>>) {
     'De momento estamos com uma elevada procura e agenda preenchida em intervenções no terreno.',
     'Dedicamos a máxima atenção a cada pedido e responderemos com a nossa proposta logo que possível.',
     '',
-    'PRECISA DE AJUDA URGENTE?',
-    'Se se tratar de uma emergência, não hesite em contactar-nos diretamente:',
-    'Telefone: +351 964 030 969',
-    '',
     '--- RESUMO DO SEU PEDIDO ---',
     `Tipo de Serviço: ${data.service}`,
     `Telefone de Contacto: ${data.phone}`,
@@ -163,19 +159,6 @@ function buildAutoReplyHtmlBody(data: Required<Omit<QuotePayload, 'website'>>) {
           <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #0369a1;">
             <strong>Aviso de disponibilidade:</strong> Estamos atualmente com uma elevada procura e agenda preenchida em intervenções no terreno. Dedicamos a máxima atenção a cada pedido e entraremos em contacto consigo com a nossa resposta logo que possível.
           </p>
-        </div>
-
-        <!-- Alerta de Urgência -->
-        <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 28px;">
-          <p style="margin: 0 0 6px 0; font-size: 15px; font-weight: 700; color: #991b1b;">
-            O seu caso é uma emergência ou precisa de resposta imediata?
-          </p>
-          <p style="margin: 0 0 14px 0; font-size: 13px; color: #7f1d1d; line-height: 1.4;">
-            Para ruturas, inundações ou fugas de água ativas, ligue diretamente:
-          </p>
-          <a href="tel:+351964030969" style="display: inline-block; background-color: #dc2626; color: #ffffff; text-decoration: none; padding: 11px 22px; border-radius: 6px; font-weight: 700; font-size: 15px; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);">
-            Ligar +351 964 030 969
-          </a>
         </div>
 
         <!-- Resumo do Pedido -->
